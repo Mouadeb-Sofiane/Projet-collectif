@@ -3,8 +3,8 @@ import {
   fetchYouTubeVideos,
   fetchYouTubePlaylists,
   fetchPlaylistVideos,
-  fetchLiveStream, // Import du service pour récupérer le live
-} from '@/services/YoutubeServices'; // Import des services
+  fetchLiveStream,
+} from '@/services/YoutubeServices';
 
 export default {
   data() {
@@ -27,8 +27,9 @@ export default {
       this.playlistsVideos[playlist.id] = videos; // Assigne les vidéos à l'ID de la playlist
     }
 
-    if (this.videos.length && !this.liveVideo) {
-      this.randomVideo = this.getRandomVideo(); // Sélectionne une vidéo aléatoire s'il n'y a pas de live
+    // Sélectionne une vidéo en vedette uniquement si aucun live n'est en cours
+    if (!this.liveVideo && this.videos.length) {
+      this.randomVideo = this.getRandomVideo();
     }
   },
   methods: {
@@ -44,7 +45,7 @@ export default {
   <div class="home">
     <h1>Bienvenue sur ma chaîne YouTube</h1>
 
-    <!-- Section Vidéo en vedette : Live ou vidéo aléatoire -->
+    <!-- Section Vidéo en vedette : Live en priorité, sinon vidéo aléatoire -->
     <div v-if="liveVideo || randomVideo" class="featured-video">
       <h2>{{ liveVideo ? 'Live en cours' : 'Vidéo en vedette' }}</h2>
       <iframe
@@ -71,7 +72,7 @@ export default {
         <div v-for="(video, index) in videos" :key="index" class="video-thumbnail">
           <h3>{{ video.snippet.title }}</h3>
           <iframe
-            :src="`https://www.youtube.com/embed/${video.id.videoId}`" 
+            :src="`https://www.youtube.com/embed/${video.id.videoId}`"
             width="100%"
             height="250px"
             frameborder="0"

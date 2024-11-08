@@ -41,10 +41,10 @@ const closeMobileMenu = () => {
                 <RouterLink @click="closeMobileMenu" to="/" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Accueil</RouterLink>
               </li>
               <li>
-                <RouterLink @click="closeMobileMenu" to="/about" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">About</RouterLink>
+                <RouterLink @click="closeMobileMenu" to="/carouselAPI" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Playlists</RouterLink>
               </li>
               <li>
-                <RouterLink @click="closeMobileMenu" to="/" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Qui suis-je ?</RouterLink>
+                <RouterLink @click="closeMobileMenu" to="/carouseltest" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Carousel Test</RouterLink>
               </li>
             </ul>
           </div>
@@ -56,10 +56,10 @@ const closeMobileMenu = () => {
               <RouterLink @click="closeMobileMenu" to="/" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700 ">Accueil</RouterLink>
             </li>
             <li>
-              <RouterLink @click="closeMobileMenu" to="/about" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700 ">About</RouterLink>
+              <RouterLink @click="closeMobileMenu" to="/carouselAPI" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700 ">Playlists</RouterLink>
             </li>
             <li>
-              <RouterLink @click="closeMobileMenu" to="/carouseltest" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700 ">Qui suis-je ?</RouterLink>
+              <RouterLink @click="closeMobileMenu" to="/carouseltest" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700 ">Carousel Test</RouterLink>
             </li>
           </ul>
         </div>
