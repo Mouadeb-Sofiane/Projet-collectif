@@ -1,4 +1,8 @@
+
 <script>
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import 'swiper/swiper-bundle.css'; // Importation des styles de Swiper
+
 import {
   fetchYouTubeVideos,
   fetchYouTubePlaylists,
@@ -7,6 +11,10 @@ import {
 } from '@/services/YoutubeServices';
 
 export default {
+  components: {
+    Swiper,
+    SwiperSlide,
+  },
   data() {
     return {
       videos: [],
@@ -53,20 +61,18 @@ export default {
             <h3>{{ playlist.snippet.title }}</h3>
           </div>
 
-          <!-- Affichage des miniatures des vidéos de la playlist côte à côte -->
-          <div v-if="playlistsVideos[playlist.id]" class="playlist-videos-container">
-            <div v-for="(video, index) in playlistsVideos[playlist.id]" :key="index" class="video-thumbnail">
+          <!-- Carousel pour les vidéos de la playlist -->
+          <Swiper :slides-per-view="3" space-between="20" navigation class="playlist-carousel">
+            <SwiperSlide v-for="(video, index) in playlistsVideos[playlist.id]" :key="index" class="video-slide">
               <h3>{{ video.snippet.title }}</h3>
-              <!-- Miniature de la vidéo -->
               <router-link :to="{ name: 'singleVideo', params: { id: video.snippet.resourceId.videoId || video.id } }">
                 <img :src="video.snippet.thumbnails.medium.url" :alt="video.snippet.title" class="video-image" />
               </router-link>
-               <!-- Bouton "Regarder" redirigeant vers la page singleVideo -->
-               <router-link :to="{ name: 'singleVideo', params: { id: video.snippet.resourceId.videoId || video.id } }">
+              <router-link :to="{ name: 'singleVideo', params: { id: video.snippet.resourceId.videoId || video.id } }">
                 <button>Regarder</button>
               </router-link>
-            </div>
-          </div>
+            </SwiperSlide>
+          </Swiper>
         </div>
       </div>
     </div>
@@ -78,73 +84,11 @@ export default {
   margin-bottom: 40px;
 }
 
-.playlist-videos-slider {
-  position: relative;
+.playlist-carousel {
+  margin-top: 20px;
 }
 
-.slider-container {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-}
-
-.slider-item {
-  display: none;
-  text-align: center;
-}
-
-button.prev,
-button.next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: none;
-  cursor: pointer;
-  padding: 10px;
-}
-
-button.prev {
-  left: 0;
-}
-
-button.next {
-  right: 0;
-}
-.playlists-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.playlist-videos-container {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap; /* Permet de passer à la ligne suivante si l'écran est trop étroit */
-}
-
-.video-thumbnail {
-  flex: 1 1 300px; /* Largeur minimale des vidéos */
-  max-width: 300px;
-}
-.playlist-block {
-  margin-bottom: 40px;
-}
-
-.playlists-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.playlist-videos-container {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap; /* Permet de passer à la ligne suivante si l'écran est trop étroit */
-}
-
-.video-thumbnail {
-  flex: 1 1 300px; /* Largeur minimale des vidéos */
-  max-width: 300px;
+.video-slide {
   text-align: center;
 }
 
@@ -154,6 +98,4 @@ button.next {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
 </style>
-
