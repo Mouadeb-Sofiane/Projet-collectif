@@ -79,13 +79,39 @@ export default {
   </div>
 </template>
 
-<style scoped>
+<style>
+.playlists-container {
+  padding: 0 5%;
+}
+
 .playlist-block {
   margin-bottom: 40px;
 }
 
 .playlist-carousel {
   margin-top: 20px;
+  position: relative;
+}
+
+/* Positionne les flèches en dehors des vidéos et vers les bords de l'écran */
+.swiper-button-next, .swiper-button-prev {
+  color: #333; /* Personnalisation de la couleur */
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.swiper-button-prev {
+  left: 0px; /* Place la flèche de gauche en dehors du conteneur, vers le bord gauche */
+}
+
+.swiper-button-next {
+  right: 0px; /* Place la flèche de droite en dehors du conteneur, vers le bord droit */
 }
 
 .video-slide {
