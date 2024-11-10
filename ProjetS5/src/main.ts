@@ -10,6 +10,7 @@ import CarouselView from './views/CarouselTest.vue';
 import Carousel from './views/CarouselTestAPI.vue';
 import SingleVideoComponent from './views/PageSingleVideo.vue'; 
 import CarouselTest from './views/Carouseltstapi.vue';
+import PocketbaseTest from './views/PocketbaseTest.vue';
 
 // Définir les routes
 const routes = [
@@ -19,6 +20,7 @@ const routes = [
   { path: '/carouselAPI', component: Carousel },
   { path : '/carouseltest', component: CarouselTest },
   { path: '/video/:id', name: 'singleVideo', component: SingleVideoComponent }, 
+  { path: '/pocketbasetest', component: PocketbaseTest },
 ];
 
 const router = createRouter({
