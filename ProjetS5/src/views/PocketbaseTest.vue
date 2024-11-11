@@ -6,14 +6,21 @@ export default {
     return {
       playlists: [],
       playlistsVideos: {}, // Structure pour garder les vidéos par playlist
-      isLoading: true, // Indicateur global de chargement
-      error: null, // Message d'erreur global
+      allVideos: [], // Structure pour toutes les vidéos sans playlist
+      isLoading: true,
+      error: null,
     };
   },
   async mounted() {
     try {
+      // Récupérer toutes les playlists
       this.playlists = await fetchPlaylists();
       console.log('Playlists:', this.playlists);
+
+      // Récupérer toutes les vidéos (sans playlist associée)
+      const allVideos = await this.fetchAllVideos();
+      this.allVideos = allVideos;
+      console.log('Toutes les vidéos:', this.allVideos);
 
       // Récupérer les vidéos pour chaque playlist
       const fetchVideosPromises = this.playlists.map(async (playlist) => {
@@ -36,6 +43,19 @@ export default {
     } finally {
       this.isLoading = false;
     }
+  },
+
+  methods: {
+    async fetchAllVideos() {
+      try {
+        // Vous récupérez toutes les vidéos (sans filtrage par playlist)
+        const videos = await this.$pb.collection('videos').getFullList(200);
+        return videos;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des vidéos globales:', error);
+        return [];
+      }
+    }
   }
 };
 </script>
@@ -45,7 +65,7 @@ export default {
     <h1>Chargement...</h1>
   </div>
   <div v-if="error" class="error-message">
-    <p>`{{ error }}`</p>
+    <p>{{ error }}</p>
   </div>
 
   <div v-if="playlists.length && !isLoading">
@@ -55,17 +75,19 @@ export default {
         <div class="playlist-thumbnail">
           <img :src="playlist.thumbnailUrl" :alt="playlist.title" />
           <h3>{{ playlist.title }}</h3>
-          <img :src="playlist.thumbnailUrl" :alt="playlist.title" />
         </div>
 
         <!-- Vérifier si des vidéos existent pour cette playlist -->
         <div v-if="playlistsVideos[playlist.id] && playlistsVideos[playlist.id].length">
           <div v-for="(video, index) in playlistsVideos[playlist.id]" :key="index" class="video-item">
             <h4>{{ video.title }}</h4>
+            <!-- Affichage des informations de la vidéo -->
+            <p>{{ video.description }}</p>
+            <p>Date de publication : {{ video.publishedAt }}</p>
+
+            <!-- Lien vers la vidéo -->
             <router-link :to="{ name: 'singleVideo', params: { id: video.videoId } }">
               <img :src="video.thumbnailUrl" :alt="video.title" class="video-image" />
-            </router-link>
-            <router-link :to="{ name: 'singleVideo', params: { id: video.videoId } }">
               <button>Regarder</button>
             </router-link>
           </div>
@@ -76,6 +98,25 @@ export default {
       </div>
     </div>
   </div>
+
+  <!-- Afficher toutes les vidéos globales sans playlist -->
+  <div v-if="allVideos.length">
+    <h2>Toutes les Vidéos</h2>
+    <div class="videos-container">
+      <div v-for="(video, index) in allVideos" :key="index" class="video-item">
+        <h4>{{ video.title }}</h4>
+        <p>{{ video.description }}</p>
+        <p>Date de publication : {{ video.publishedAt }}</p>
+
+        <!-- Lien vers la vidéo -->
+        <router-link :to="{ name: 'singleVideo', params: { id: video.videoId } }">
+          <img :src="video.thumbnailUrl" :alt="video.title" class="video-image" />
+          <button>Regarder</button>
+        </router-link>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <style scoped>
@@ -107,5 +148,10 @@ export default {
   color: red;
   font-size: 1.2em;
   margin-top: 20px;
+}
+
+.videos-container {
+  padding: 0 5%;
+  margin-top: 40px;
 }
 </style>

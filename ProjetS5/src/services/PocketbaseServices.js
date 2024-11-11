@@ -1,12 +1,11 @@
 import PocketBase from 'pocketbase';
 
-const pb = new PocketBase('http://127.0.0.1:8090'); // Remplacez par votre URL PocketBase
+const pb = new PocketBase('http://127.0.0.1:8090');
 
-// Fonction pour récupérer toutes les playlists
 export const fetchPlaylists = async () => {
   try {
     const playlists = await pb.collection('playlists').getFullList(200, {
-      sort: '-created', // Optionnel : tri décroissant par date de création
+      sort: '-created',
     });
     return playlists;
   } catch (error) {
@@ -15,35 +14,44 @@ export const fetchPlaylists = async () => {
   }
 };
 
-// Fonction pour récupérer les vidéos d'une playlist spécifique
 export const fetchVideosByPlaylist = async (playlistId) => {
   try {
-    // Vérifier le champ 'id_playlists' dans PocketBase et s'assurer qu'il correspond à votre relation
+    // Vérifier la validité de playlistId
+    console.log('playlistId:', playlistId);
+    if (!playlistId) {
+      console.error('playlistId est invalide ou non défini');
+      return [];
+    }
+
+    console.log(`Récupération des vidéos pour la playlist ${playlistId}...`);
+
+    // Essayez sans filtre pour tester la validité des données
     const playlistVideos = await pb.collection('playlist_video').getFullList(200, {
-      filter: `id_playlists="${playlistId}"`, // Assurez-vous que ce champ existe
+      filter: `playlists_id="${playlistId}"`,  // Vérifiez que le nom du champ est correct
     });
 
-    console.log('Données de playlist_video:', playlistVideos);
+    console.log('Données de playlist_video récupérées:', playlistVideos);
 
-    // Récupérer les IDs des vidéos associées
-    const videoIds = playlistVideos.map(entry => entry.id_videos);
+    // Récupérer les IDs des vidéos liées à la playlist
+    const videoIds = playlistVideos.map(entry => entry.videos_id);
     console.log('ID des vidéos récupérés:', videoIds);
 
+    // Vérification si des vidéos ont été récupérées
     if (videoIds.length === 0) {
       console.log(`Aucune vidéo trouvée pour la playlist ${playlistId}`);
       return [];
     }
 
-    // Récupérer les vidéos
+    // Filtrer les vidéos par leurs IDs récupérés
     const videos = await pb.collection('videos').getFullList(200, {
-      filter: `id IN (${videoIds.join(',')})`, // Vérifier si la syntaxe 'id IN' est valide
-      sort: '-publishedAt', // Trier par date de publication si nécessaire
+      filter: `id IN (${videoIds.map(id => `"${id}"`).join(',')})`,
+      sort: '-date',
     });
 
     console.log('Vidéos récupérées:', videos);
     return videos;
   } catch (error) {
-    console.error(`Erreur lors de la récupération des vidéos pour la playlist ${playlistId} :`, error);
+    console.error(`Erreur lors de la récupération des vidéos pour la playlist ${playlistId}:`, error.response || error);
     return [];
   }
 };
