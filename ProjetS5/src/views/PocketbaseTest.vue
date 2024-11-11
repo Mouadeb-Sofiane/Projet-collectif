@@ -1,110 +1,111 @@
+<script>
+import { fetchPlaylists, fetchVideosByPlaylist } from '@/services/PocketBaseServices';
+
+export default {
+  data() {
+    return {
+      playlists: [],
+      playlistsVideos: {}, // Structure pour garder les vidéos par playlist
+      isLoading: true, // Indicateur global de chargement
+      error: null, // Message d'erreur global
+    };
+  },
+  async mounted() {
+    try {
+      this.playlists = await fetchPlaylists();
+      console.log('Playlists:', this.playlists);
+
+      // Récupérer les vidéos pour chaque playlist
+      const fetchVideosPromises = this.playlists.map(async (playlist) => {
+        try {
+          const videos = await fetchVideosByPlaylist(playlist.id);
+          this.playlistsVideos[playlist.id] = videos;
+          console.log(`Vidéos pour la playlist ${playlist.title}:`, videos);
+        } catch (error) {
+          console.error(`Erreur lors de la récupération des vidéos pour ${playlist.title}:`, error);
+          this.$set(this.playlistsVideos, playlist.id, []); // Ajouter une valeur vide pour cette playlist en cas d'erreur
+        }
+      });
+
+      // Attendre que toutes les vidéos soient récupérées
+      await Promise.all(fetchVideosPromises);
+
+    } catch (error) {
+      console.error('Erreur lors de la récupération des playlists:', error);
+      this.error = 'Une erreur est survenue lors du chargement des playlists et des vidéos.';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+};
+</script>
+
 <template>
-    <div>
-      <h1>Bienvenue sur les playlists</h1>
-  
-      <div v-if="playlists.length">
-        <h2>Mes Playlists</h2>
-        <div class="playlists-container">
-          <div v-for="(playlist, index) in playlists" :key="index" class="playlist-block">
-            <div class="playlist-thumbnail">
-              <img :src="playlist.thumbnailUrl" :alt="playlist.title" />
-              <h3>{{ playlist.title }}</h3>
-            </div>
-  
-            <!-- Carousel pour les vidéos de la playlist -->
-            <Swiper :slides-per-view="3" space-between="20" navigation class="playlist-carousel">
-              <SwiperSlide v-for="(video, index) in playlistsVideos[playlist.id]" :key="index" class="video-slide">
-                <h3>{{ video.title }}</h3>
-                <router-link :to="{ name: 'singleVideo', params: { id: video.videoId } }">
-                  <img :src="video.thumbnailUrl" :alt="video.title" class="video-image" />
-                </router-link>
-                <router-link :to="{ name: 'singleVideo', params: { id: video.videoId } }">
-                  <button>Regarder</button>
-                </router-link>
-              </SwiperSlide>
-            </Swiper>
+  <div v-if="isLoading">
+    <h1>Chargement...</h1>
+  </div>
+  <div v-if="error" class="error-message">
+    <p>`{{ error }}`</p>
+  </div>
+
+  <div v-if="playlists.length && !isLoading">
+    <h2>Mes Playlists</h2>
+    <div class="playlists-container">
+      <div v-for="(playlist, index) in playlists" :key="index" class="playlist-block">
+        <div class="playlist-thumbnail">
+          <img :src="playlist.thumbnailUrl" :alt="playlist.title" />
+          <h3>{{ playlist.title }}</h3>
+          <img :src="playlist.thumbnailUrl" :alt="playlist.title" />
+        </div>
+
+        <!-- Vérifier si des vidéos existent pour cette playlist -->
+        <div v-if="playlistsVideos[playlist.id] && playlistsVideos[playlist.id].length">
+          <div v-for="(video, index) in playlistsVideos[playlist.id]" :key="index" class="video-item">
+            <h4>{{ video.title }}</h4>
+            <router-link :to="{ name: 'singleVideo', params: { id: video.videoId } }">
+              <img :src="video.thumbnailUrl" :alt="video.title" class="video-image" />
+            </router-link>
+            <router-link :to="{ name: 'singleVideo', params: { id: video.videoId } }">
+              <button>Regarder</button>
+            </router-link>
           </div>
+        </div>
+        <div v-else>
+          <p>Aucune vidéo disponible pour cette playlist.</p>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import { Swiper, SwiperSlide } from 'swiper/vue';
-  import 'swiper/swiper-bundle.css';
-  import { fetchPlaylists, fetchVideosByPlaylist } from '@/services/PocketBaseServices';
-  
-  export default {
-    components: {
-      Swiper,
-      SwiperSlide,
-    },
-    data() {
-      return {
-        playlists: [],
-        playlistsVideos: {},
-        liveVideo: null,
-        randomVideo: null,
-      };
-    },
-    async mounted() {
-      // Authentifiez-vous si nécessaire (ex. pour accès sécurisé)
-      // Ici, nous supposons que les collections sont accessibles en lecture publique
-  
-      this.playlists = await fetchPlaylists();
-      for (const playlist of this.playlists) {
-        this.playlistsVideos[playlist.id] = await fetchVideosByPlaylist(playlist.playlistId);
-      }
-  
-      // Gérer le live en direct avec l'API YouTube si nécessaire
-    },
-  };
-  </script>
-  
-  <style scoped>
-  .playlists-container {
-    padding: 0 5%;
-  }
-  
-  .playlist-block {
-    margin-bottom: 40px;
-  }
-  
-  .playlist-carousel {
-    margin-top: 20px;
-    position: relative;
-  }
-  
-  /* Positionne les flèches en dehors des vidéos et vers les bords de l'écran */
-  .swiper-button-next, .swiper-button-prev {
-    color: #333; /* Personnalisation de la couleur */
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 50%;
-    padding: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-  }
-  
-  .swiper-button-prev {
-    left: -40px; /* Place la flèche de gauche en dehors du conteneur, vers le bord gauche */
-  }
-  
-  .swiper-button-next {
-    right: -40px; /* Place la flèche de droite en dehors du conteneur, vers le bord droit */
-  }
-  
-  .video-slide {
-    text-align: center;
-  }
-  
-  .video-image {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  </style>
-  
+  </div>
+</template>
+
+<style scoped>
+.playlists-container {
+  padding: 0 5%;
+}
+
+.playlist-block {
+  margin-bottom: 40px;
+}
+
+.playlist-thumbnail {
+  text-align: center;
+}
+
+.video-item {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.video-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.error-message {
+  color: red;
+  font-size: 1.2em;
+  margin-top: 20px;
+}
+</style>
