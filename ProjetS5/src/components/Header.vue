@@ -46,6 +46,9 @@ const closeMobileMenu = () => {
               <li>
                 <RouterLink @click="closeMobileMenu" to="/carouseltest" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Carousel Test</RouterLink>
               </li>
+              <li>
+                <RouterLink @click="closeMobileMenu" to="/pocketbasetest" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Pocketbase Test</RouterLink>
+              </li>
             </ul>
           </div>
         </div>
@@ -60,6 +63,9 @@ const closeMobileMenu = () => {
             </li>
             <li>
               <RouterLink @click="closeMobileMenu" to="/carouseltest" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700 ">Carousel Test</RouterLink>
+            </li>
+            <li>
+              <RouterLink @click="closeMobileMenu" to="/pocketbasetest" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700 ">Pocketbase Test</RouterLink>
             </li>
           </ul>
         </div>

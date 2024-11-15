@@ -7,42 +7,59 @@ export const fetchPlaylists = async () => {
     const playlists = await pb.collection('playlists').getFullList(200, {
       sort: '-created',
     });
+    console.log('Playlists récupérées:', playlists);
     return playlists;
   } catch (error) {
-    console.error('Erreur lors de la récupération des playlists :', error);
+    console.error('Erreur lors de la récupération des playlists:', error.response || error);
+    return [];
+  }
+};
+
+export const fetchVideos = async () => {
+  try {
+    const videos = await pb.collection('videos').getFullList(200, {
+      sort: '-created',
+    });
+    return videos;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des vidéos :', error);
+    return [];
+  }
+};
+
+export const fetchAllVideos = async () => {
+  try {
+    const videos = await pb.collection('videos').getFullList(200, {
+      sort: '-date',
+    });
+    console.log('Vidéos globales récupérées:', videos);
+    return videos;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des vidéos globales:', error.response || error);
     return [];
   }
 };
 
 export const fetchVideosByPlaylist = async (playlistId) => {
   try {
-    // Vérifier la validité de playlistId
-    console.log('playlistId:', playlistId);
-    if (!playlistId) {
-      console.error('playlistId est invalide ou non défini');
-      return [];
-    }
-
     console.log(`Récupération des vidéos pour la playlist ${playlistId}...`);
 
-    // Essayez sans filtre pour tester la validité des données
-    const playlistVideos = await pb.collection('playlist_video').getFullList(200, {
-      filter: `playlists_id="${playlistId}"`,  // Vérifiez que le nom du champ est correct
+    // Étape 1 : Récupérer les relations playlist_video
+    const playlistVideoRelations = await pb.collection('playlist_video').getFullList(200, {
+      filter: `id_playlists="${playlistId}"`,
     });
 
-    console.log('Données de playlist_video récupérées:', playlistVideos);
+    console.log('Relations playlist_video récupérées:', playlistVideoRelations);
 
-    // Récupérer les IDs des vidéos liées à la playlist
-    const videoIds = playlistVideos.map(entry => entry.videos_id);
-    console.log('ID des vidéos récupérés:', videoIds);
+    // Étape 2 : Extraire les IDs des vidéos
+    const videoIds = playlistVideoRelations.map(relation => relation.id_videos);
 
-    // Vérification si des vidéos ont été récupérées
     if (videoIds.length === 0) {
       console.log(`Aucune vidéo trouvée pour la playlist ${playlistId}`);
       return [];
     }
 
-    // Filtrer les vidéos par leurs IDs récupérés
+    // Étape 3 : Récupérer les vidéos par leurs IDs
     const videos = await pb.collection('videos').getFullList(200, {
       filter: `id IN (${videoIds.map(id => `"${id}"`).join(',')})`,
       sort: '-date',
@@ -55,3 +72,4 @@ export const fetchVideosByPlaylist = async (playlistId) => {
     return [];
   }
 };
+
