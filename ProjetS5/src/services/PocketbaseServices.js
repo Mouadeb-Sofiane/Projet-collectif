@@ -1,75 +1,91 @@
+// youtubePocketBaseIntegration.js
+
 import PocketBase from 'pocketbase';
 
-const pb = new PocketBase('http://127.0.0.1:8090');
+// Fonction pour récupérer les playlists de YouTube
+const fetchYouTubePlaylists = async (apiKey, channelId) => {
+  const url = `https://www.googleapis.com/youtube/v3/playlists?part=snippet&channelId=${channelId}&key=${apiKey}`;
+  
+  const response = await fetch(url);
+  const data = await response.json();
+  
+  return data.items; // Liste des playlists
+};
 
-export const fetchPlaylists = async () => {
+// Fonction pour récupérer les vidéos d'une playlist YouTube
+const fetchYouTubePlaylistVideos = async (apiKey, playlistId) => {
+  const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&key=${apiKey}`;
+  
+  const response = await fetch(url);
+  const data = await response.json();
+  
+  return data.items; // Liste des vidéos
+};
+
+// Fonction pour enregistrer une playlist dans PocketBase
+const savePlaylistToPocketBase = async (playlist) => {
+  const pb = new PocketBase('http://127.0.0.1:8090'); // Remplacer par l'URL de votre instance PocketBase
+  const data = {
+    title: playlist.snippet.title,
+    description: playlist.snippet.description,
+    youtubePlaylistId: playlist.id, // L'ID de la playlist YouTube
+    thumbnailUrl: playlist.snippet.thumbnails.default.url,
+  };
+
   try {
-    const playlists = await pb.collection('playlists').getFullList(200, {
-      sort: '-created',
-    });
-    console.log('Playlists récupérées:', playlists);
-    return playlists;
+    const savedPlaylist = await pb.collection('playlists').create(data);
+    return savedPlaylist;
   } catch (error) {
-    console.error('Erreur lors de la récupération des playlists:', error.response || error);
-    return [];
+    console.error('Erreur lors de l\'enregistrement de la playlist:', error);
   }
 };
 
-export const fetchVideos = async () => {
+// Fonction pour enregistrer une vidéo dans PocketBase
+const saveVideoToPocketBase = async (video, playlistId) => {
+  const pb = new PocketBase('http://127.0.0.1:8090'); // Remplacer par l'URL de votre instance PocketBase
+  const data = {
+    title: video.snippet.title,
+    description: video.snippet.description,
+    youtubeVideoId: video.snippet.resourceId.videoId, // L'ID de la vidéo YouTube
+    youtubePlaylistId: playlistId, // L'ID de la playlist associée
+    thumbnailUrl: video.snippet.thumbnails.default.url,
+  };
+
   try {
-    const videos = await pb.collection('videos').getFullList(200, {
-      sort: '-created',
-    });
-    return videos;
+    const savedVideo = await pb.collection('videos').create(data);
+    return savedVideo;
   } catch (error) {
-    console.error('Erreur lors de la récupération des vidéos :', error);
-    return [];
+    console.error('Erreur lors de l\'enregistrement de la vidéo:', error);
   }
 };
 
-export const fetchAllVideos = async () => {
+// Fonction principale pour récupérer les playlists et vidéos et les enregistrer dans PocketBase
+const fetchAndSaveYouTubeData = async (apiKey, channelId) => {
   try {
-    const videos = await pb.collection('videos').getFullList(200, {
-      sort: '-date',
-    });
-    console.log('Vidéos globales récupérées:', videos);
-    return videos;
-  } catch (error) {
-    console.error('Erreur lors de la récupération des vidéos globales:', error.response || error);
-    return [];
-  }
-};
+    // Récupérer les playlists de YouTube
+    const playlists = await fetchYouTubePlaylists(apiKey, channelId);
 
-export const fetchVideosByPlaylist = async (playlistId) => {
-  try {
-    console.log(`Récupération des vidéos pour la playlist ${playlistId}...`);
+    // Pour chaque playlist, récupérer les vidéos et enregistrer les deux dans PocketBase
+    for (const playlist of playlists) {
+      const savedPlaylist = await savePlaylistToPocketBase(playlist);
 
-    // Étape 1 : Récupérer les relations playlist_video
-    const playlistVideoRelations = await pb.collection('playlist_video').getFullList(200, {
-      filter: `id_playlists="${playlistId}"`,
-    });
-
-    console.log('Relations playlist_video récupérées:', playlistVideoRelations);
-
-    // Étape 2 : Extraire les IDs des vidéos
-    const videoIds = playlistVideoRelations.map(relation => relation.id_videos);
-
-    if (videoIds.length === 0) {
-      console.log(`Aucune vidéo trouvée pour la playlist ${playlistId}`);
-      return [];
+      // Récupérer les vidéos de cette playlist
+      const videos = await fetchYouTubePlaylistVideos(apiKey, playlist.id);
+      for (const video of videos) {
+        await saveVideoToPocketBase(video, savedPlaylist.id);
+      }
     }
 
-    // Étape 3 : Récupérer les vidéos par leurs IDs
-    const videos = await pb.collection('videos').getFullList(200, {
-      filter: `id IN (${videoIds.map(id => `"${id}"`).join(',')})`,
-      sort: '-date',
-    });
-
-    console.log('Vidéos récupérées:', videos);
-    return videos;
+    console.log('Données YouTube enregistrées avec succès dans PocketBase!');
   } catch (error) {
-    console.error(`Erreur lors de la récupération des vidéos pour la playlist ${playlistId}:`, error.response || error);
-    return [];
+    console.error('Erreur lors de la récupération ou de l\'enregistrement des données:', error);
   }
 };
 
+
+// Appeler la fonction avec votre clé API et l'ID de la chaîne YouTube
+const apiKey = 'AIzaSyDX8BB6-H6riZiT1xDPI3juzwWRJ1bRkv8';
+const channelId = 'UCPDz0ioYdfy3IhrY26DUPrQ';
+
+
+fetchAndSaveYouTubeData(apiKey, channelId);
