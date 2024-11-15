@@ -40,68 +40,88 @@ export default {
   },
 };
 </script>
-
 <template>
-  <div class="home">
-    <h1>Bienvenue sur ma chaîne YouTube</h1>
+  <div class="home px-4 py-8">
+    <h1 class="text-4xl font-bold text-center mb-8">Bienvenue sur ma chaîne YouTube</h1>
 
     <!-- Section Vidéo en vedette : Live en priorité, sinon vidéo aléatoire -->
-    <div v-if="liveVideo || randomVideo" class="featured-video">
-      <h2>{{ liveVideo ? 'Live en cours' : 'Vidéo en vedette' }}</h2>
-      <iframe
-        v-if="liveVideo"
-        :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1`"
-        width="100%"
-        height="500px"
-        frameborder="0"
-        allowfullscreen
-      ></iframe>
-      <iframe
-        v-else
-        :src="`https://www.youtube.com/embed/${randomVideo.id.videoId}?autoplay=1&mute=1`"
-        width="100%"
-        height="500px"
-        frameborder="0"
-        allowfullscreen
-      ></iframe>
+    <div v-if="liveVideo || randomVideo" class="featured-video mb-12">
+      <h2 class="text-2xl font-semibold text-center mb-4">
+        {{ liveVideo ? 'Live en cours' : 'Vidéo en vedette' }}
+      </h2>
+      <div class="aspect-w-16 aspect-h-9 mx-auto max-w-4xl">
+        <iframe
+          v-if="liveVideo"
+          :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1`"
+          class="rounded-lg"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+        <iframe
+          v-else
+          :src="`https://www.youtube.com/embed/${randomVideo.id.videoId}?autoplay=1&mute=1`"
+          class="rounded-lg"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </div>
     </div>
 
-    <div v-if="videos.length">
-      <h2>Mes autres vidéos</h2>
-      <div class="videos-container">
-        <div v-for="(video, index) in videos" :key="index" class="video-thumbnail">
-          <h3>{{ video.snippet.title }}</h3>
-          <iframe
-            :src="`https://www.youtube.com/embed/${video.id.videoId}`"
-            width="100%"
-            height="250px"
-            frameborder="0"
-            allowfullscreen
-          ></iframe>
+    <!-- Section Vidéos -->
+    <div v-if="videos.length" class="mb-12">
+      <h2 class="text-2xl font-semibold text-center mb-6">Mes autres vidéos</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="(video, index) in videos"
+          :key="index"
+          class="video-thumbnail bg-gray-100 rounded-lg shadow-md p-4"
+        >
+          <h3 class="text-lg font-medium mb-2">{{ video.snippet.title }}</h3>
+          <div class="aspect-w-16 aspect-h-9">
+            <iframe
+              :src="`https://www.youtube.com/embed/${video.id.videoId}`"
+              class="rounded-lg"
+              frameborder="0"
+              allowfullscreen
+            ></iframe>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Section Playlists avec vidéos directement chargées -->
+    <!-- Section Playlists -->
     <div v-if="playlists.length">
-      <h2>Mes Playlists</h2>
-      <div class="playlists-container">
-        <div v-for="(playlist, index) in playlists" :key="index" class="playlist-block">
-          <div class="playlist-thumbnail">
-            <img :src="playlist.snippet.thumbnails.medium.url" :alt="playlist.snippet.title" />
-            <h3>{{ playlist.snippet.title }}</h3>
+      <h2 class="text-2xl font-semibold text-center mb-6">Mes Playlists</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div
+          v-for="(playlist, index) in playlists"
+          :key="index"
+          class="playlist-block bg-gray-100 rounded-lg shadow-md p-4"
+        >
+          <div class="playlist-thumbnail text-center mb-4">
+            <img
+              :src="playlist.snippet.thumbnails.medium.url"
+              :alt="playlist.snippet.title"
+              class="w-full rounded-lg mb-2"
+            />
+            <h3 class="text-lg font-medium">{{ playlist.snippet.title }}</h3>
           </div>
-          <!-- Affichage des vidéos de la playlist -->
-          <div v-if="playlistsVideos[playlist.id]" class="playlist-videos-container">
-            <div v-for="(video, index) in playlistsVideos[playlist.id]" :key="index" class="video-thumbnail">
-              <h3>{{ video.snippet.title }}</h3>
-              <iframe
-                :src="`https://www.youtube.com/embed/${video.snippet.resourceId.videoId}`"
-                width="100%"
-                height="200px"
-                frameborder="0"
-                allowfullscreen
-              ></iframe>
+          <!-- Vidéos de la playlist -->
+          <div v-if="playlistsVideos[playlist.id]" class="playlist-videos-container space-y-4">
+            <div
+              v-for="(video, index) in playlistsVideos[playlist.id]"
+              :key="index"
+              class="video-thumbnail bg-white rounded-lg shadow p-4"
+            >
+              <h3 class="text-base font-medium mb-2">{{ video.snippet.title }}</h3>
+              <div class="aspect-w-16 aspect-h-9">
+                <iframe
+                  :src="`https://www.youtube.com/embed/${video.snippet.resourceId.videoId}`"
+                  class="rounded-lg"
+                  frameborder="0"
+                  allowfullscreen
+                ></iframe>
+              </div>
             </div>
           </div>
         </div>
@@ -109,38 +129,3 @@ export default {
     </div>
   </div>
 </template>
-
-<style scoped>
-.home {
-  text-align: center;
-}
-.playlists-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.playlist-block {
-  margin: 20px;
-  width: 100%;
-}
-.playlist-thumbnail {
-  text-align: center;
-}
-.playlist-videos-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.videos-container, .playlist-videos-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.video-thumbnail {
-  margin: 10px;
-  width: 300px;
-}
-h2 {
-  margin-bottom: 20px;
-}
-</style>
