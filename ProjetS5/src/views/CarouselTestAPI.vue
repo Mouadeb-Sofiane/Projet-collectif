@@ -1,4 +1,3 @@
-
 <script>
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import 'swiper/swiper-bundle.css'; // Importation des styles de Swiper
