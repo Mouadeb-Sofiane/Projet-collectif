@@ -73,9 +73,4 @@ export default {
     </div>
 </template>
   
-
-  
-  <style scoped>
-  /* Ajoutez ici vos styles CSS si nécessaire */
-  </style>
   
