@@ -43,17 +43,18 @@ export default {
       <div v-if="video && !isLoading">
         <h1 class="text-3xl font-bold text-center">{{ video.title }}</h1>
         <p class="text-center text-gray-500">{{ video.description }}</p>
-        <!-- <div class="flex justify-center mt-4">
+        <div class="flex justify-center mt-4">
           <iframe 
             :src="`https://www.youtube.com/embed/${video.videoId}`" 
             frameborder="0" 
             allowfullscreen 
             class="w-full md:w-2/3 h-64 md:h-96">
           </iframe>
-        </div>-->
+        </div>
         <p class="text-sm text-gray-500 mt-4 text-center">
-          Date de publication : {{ video.publishedAt }}
+          Date de publication : {{ video.date }}
         </p>
+        <p>Durée : {{ video.duree }}</p>
       </div>
     </div>
   </template>

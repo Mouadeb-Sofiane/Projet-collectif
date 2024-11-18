@@ -79,7 +79,7 @@ export default {
             >
               <h4 class="text-base font-medium">{{ video.title }}</h4>
               <p class="text-sm text-gray-600 text-center">{{ video.description }}</p>
-              <p class="text-xs text-gray-500">Date de publication : {{ video.publishedAt }}</p>
+              <p class="text-xs text-gray-500">Date de publication : {{ video.date }}</p>
               <router-link 
                 :to="{ name: 'singleVideoPocket', params: { id: video.id } }" 
                 class="w-full mt-2"
