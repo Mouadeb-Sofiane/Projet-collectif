@@ -6,6 +6,7 @@ import {
   fetchLiveStream,
 } from '@/services/YoutubeServices';
 
+
 export default {
   data() {
     return {
@@ -41,35 +42,30 @@ export default {
 };
 </script>
 <template>
-  <div class="home px-4 py-8">
-    <h1 class="text-4xl font-bold text-center mb-8">Bienvenue sur ma chaîne YouTube</h1>
-
-    <!-- Section Vidéo en vedette : Live en priorité, sinon vidéo aléatoire -->
+   <div class="text-white bg-black">
     <div v-if="liveVideo || randomVideo" class="featured-video mb-12">
-      <h2 class="text-2xl font-semibold text-center mb-4">
-        {{ liveVideo ? 'Live en cours' : 'Vidéo en vedette' }}
-      </h2>
-      <div class="aspect-w-16 aspect-h-9 mx-auto max-w-4xl">
+      <div class="w-full h-96 ">
         <iframe
           v-if="liveVideo"
-          :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1`"
-          class="rounded-lg"
+          :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
+          class="w-full h-full"
           frameborder="0"
-          allowfullscreen
+          allow="autoplay; encrypted-media"
         ></iframe>
         <iframe
           v-else
-          :src="`https://www.youtube.com/embed/${randomVideo.id.videoId}?autoplay=1&mute=1`"
-          class="rounded-lg"
+          :src="`https://www.youtube.com/embed/${randomVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${randomVideo.id.videoId}`"
+          class="w-full h-full"
           frameborder="0"
-          allowfullscreen
+          allow="autoplay; encrypted-media"
         ></iframe>
       </div>
     </div>
+  </div>
 
     <!-- Section Vidéos -->
     <div v-if="videos.length" class="mb-12">
-      <h2 class="text-2xl font-semibold text-center mb-6">Mes autres vidéos</h2>
+      <h2 class="text-2xl font-semibold text-center mb-6"></h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="(video, index) in videos"
@@ -127,5 +123,5 @@ export default {
         </div>
       </div>
     </div>
-  </div>
+  
 </template>
