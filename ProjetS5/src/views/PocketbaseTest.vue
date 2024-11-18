@@ -81,7 +81,7 @@ export default {
               <p class="text-sm text-gray-600 text-center">{{ video.description }}</p>
               <p class="text-xs text-gray-500">Date de publication : {{ video.publishedAt }}</p>
               <router-link 
-                :to="{ name: 'singleVideo', params: { id: video.id } }" 
+                :to="{ name: 'singleVideoPocket', params: { id: video.id } }" 
                 class="w-full mt-2"
               >
                 <img 
@@ -94,10 +94,10 @@ export default {
                 >
                   Regarder
                 </button>
+               
               </router-link>
             </div>
           </div>
-
           <div v-else class="mt-4 text-center text-gray-500">
             <p>Aucune vidéo disponible pour cette playlist.</p>
           </div>
@@ -116,7 +116,7 @@ export default {
           <p class="text-sm text-gray-600 text-center">{{ video.description }}</p>
           <p class="text-xs text-gray-500">Date de publication : {{ video.publishedAt }}</p>
           <router-link 
-            :to="{ name: 'singleVideo', params: { id: video.id } }" 
+            :to="{ name: 'singleVideoPocket', params: { id: video.id } }" 
             class="w-full mt-2"
           >
             <img 
