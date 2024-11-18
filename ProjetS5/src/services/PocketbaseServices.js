@@ -1,5 +1,3 @@
-// youtubePocketBaseIntegration.js
-
 import PocketBase from 'pocketbase';
 
 // Fonction pour récupérer les playlists de YouTube
