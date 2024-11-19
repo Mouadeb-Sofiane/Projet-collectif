@@ -90,20 +90,27 @@ export default {
 
     <!-- Vidéo en direct ou vidéo aléatoire -->
     <div v-if="liveVideo || randomVideo" class="featured-video mb-12">
-      <div class="w-full h-96">
+      <div class="relative w-full h-screen overflow-hidden">
         <iframe
           v-if="liveVideo"
           :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
-          class="w-full h-full"
+          class="w-full h-full object-cover"
           frameborder="0"
           allow="autoplay; encrypted-media"
         ></iframe>
         <video 
           v-if="randomVideo && randomVideo.VideoTele" 
           :src="`http://127.0.0.1:8090/api/files/videos/${randomVideo.id}/${randomVideo.VideoTele}`" 
-          controls 
-          class="w-full md:w-2/3 h-64 md:h-96">
+          class="w-full h-full object-cover" 
+          autoplay
+          muted
+          loop
+          playsinline>
         </video>
+        <div 
+          class="absolute inset-x-0 bottom-0" 
+          style="background:linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);height:20%;"
+        ></div>
       </div>
     </div>
   </div>
@@ -188,3 +195,9 @@ export default {
   </div>
 </template>
 
+<style scoped>
+
+video::-webkit-media-controls {
+  display: none !important;
+}
+</style>
