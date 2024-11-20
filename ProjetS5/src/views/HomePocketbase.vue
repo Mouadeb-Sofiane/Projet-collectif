@@ -1,29 +1,34 @@
 <script>
 import PocketBase from 'pocketbase';
-import { fetchYouTubeVideos, fetchYouTubePlaylists, fetchLiveStream } from '@/services/YoutubeServices';
+import {
+  fetchYouTubeVideos,
+  fetchYouTubePlaylists,
+  fetchLiveStream,
+} from '@/services/YoutubeServices';
 
 export default {
   data() {
     return {
-      playlists: [], // Playlists depuis YouTube
-      playlistsVideos: {}, // Vidéos par playlist depuis YouTube
-      allVideos: [], // Toutes les vidéos depuis PocketBase
-      liveVideo: null, // Vidéo du live depuis YouTube
-      randomVideo: null, // Vidéo aléatoire depuis PocketBase
-      isLoading: true, // État de chargement
-      errorMessage: '', // Message d'erreur
+      playlists: [], // Toutes les playlists (PocketBase + YouTube)
+      playlistsVideos: {}, // Vidéos regroupées par playlist
+      allVideos: [], // Toutes les vidéos PocketBase
+      liveVideo: null, // Vidéo en live depuis YouTube
+      randomVideo: null, // Vidéo aléatoire de PocketBase
+      isLoading: true, // Indicateur de chargement
+      errorMessage: '', // Gestion des erreurs
     };
   },
+
   async mounted() {
-    this.isLoading = true;
     try {
-      // Récupérer les playlists et vidéos depuis PocketBase
-      const pb = new PocketBase('http://127.0.0.1:8090'); // Remplacez par l'URL de votre instance PocketBase
+      this.isLoading = true;
 
-      // Récupérer les playlists depuis PocketBase
+      // Récupérer les données de PocketBase
+      const pb = new PocketBase('http://127.0.0.1:8090');
       this.playlists = await pb.collection('playlists').getFullList();
+      this.allVideos = await pb.collection('videos').getFullList(200);
 
-      // Récupérer les vidéos pour chaque playlist
+      // Associer les vidéos PocketBase aux playlists
       for (const playlist of this.playlists) {
         const videos = await pb.collection('videos').getFullList(200, {
           filter: `id_playlists~"${playlist.id}"`,
@@ -31,41 +36,43 @@ export default {
         this.playlistsVideos[playlist.id] = videos;
       }
 
-      // Récupérer toutes les vidéos depuis PocketBase
-      this.allVideos = await pb.collection('videos').getFullList(200);
-
-      // Récupérer les vidéos et playlists depuis YouTube
-      const [ytVideos, ytPlaylists] = await Promise.all([
-        fetchYouTubeVideos(), // Récupère les vidéos YouTube
-        fetchYouTubePlaylists(), // Récupère les playlists YouTube
+      // Récupérer les playlists et vidéos YouTube
+      const [ytPlaylists, ytVideos] = await Promise.all([
+        fetchYouTubePlaylists(),
+        fetchYouTubeVideos(),
       ]);
-      this.playlistsVideos['yt'] = ytPlaylists; // Stocke les playlists YouTube
 
-      // Récupérer le live en cours sur YouTube
+      // Ajouter les playlists YouTube
+      this.playlists = [...this.playlists, ...ytPlaylists];
+      this.playlistsVideos['yt'] = ytVideos;
+
+      // Récupérer le live YouTube
       this.liveVideo = await fetchLiveStream();
 
-      // Si aucun live, sélectionne une vidéo aléatoire de PocketBase
+      // Si aucun live, sélectionner une vidéo aléatoire de PocketBase
       if (!this.liveVideo && this.allVideos.length > 0) {
         this.randomVideo = this.getRandomVideo();
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
-      this.errorMessage = 'Une erreur est survenue lors du chargement des vidéos.';
+      this.errorMessage = 'Une erreur est survenue lors du chargement des données.';
     } finally {
       this.isLoading = false;
     }
   },
   methods: {
+    // Génère une vidéo aléatoire à partir de PocketBase
     getRandomVideo() {
       const randomIndex = Math.floor(Math.random() * this.allVideos.length);
       return this.allVideos[randomIndex];
     },
   },
 };
+
 </script>
 
 <template>
-  <div class="p-4">
+  <div class="">
     <!-- Chargement en cours -->
     <div v-if="isLoading" class="flex items-center justify-center h-screen">
       <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
@@ -77,7 +84,7 @@ export default {
     </div>
 
     <!-- Vidéo en direct ou vidéo aléatoire -->
-    <div class="p-4">
+    <div class="">
     <!-- Chargement en cours -->
     <div v-if="isLoading" class="flex items-center justify-center h-screen">
       <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
@@ -152,38 +159,39 @@ export default {
 
     <!-- Section Playlists et vidéos PocketBase -->
     <div v-if="playlists.length && !isLoading">
-      <h2 class="text-3xl font-bold text-center my-6">Mes Playlists PocketBase</h2>
+      <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="playlist in playlists"
           :key="playlist.id"
           class="playlist-block bg-white rounded-lg shadow-md p-4"
         >
-          <div class="playlist-thumbnail" v-if="playlist?.title">
-            <img
-              :src="playlist.thumbnailUrl"
-              :alt="playlist.title"
-              class="w-full h-40 object-cover rounded-md"
-            />
-            <h3 class="text-lg font-semibold mt-2 text-center">{{ playlist.title }}</h3>
-          </div>
-          <div v-if="playlistsVideos[playlist.id]?.length" class="mt-4 space-y-4">
+          <h3 class="text-lg font-semibold text-center mb-2">{{ playlist.title }}</h3>
+          <div v-if="playlistsVideos[playlist.id]?.length">
             <div
               v-for="video in playlistsVideos[playlist.id]"
               :key="video.id"
               class="video-item flex flex-col items-center"
             >
-              <h4 class="text-base font-medium">{{ video.title }}</h4>
-              <p class="text-sm text-gray-600 text-center">{{ video.description }}</p>
+              <h4 class="text-sm font-medium">{{ video.title }}</h4>
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-                <img
-                  :src="video.thumbnailUrl"
-                  :alt="video.title"
+              <div class="video-thumbnail mt-2">
+                <video
+                  :id="'video-' + video.id"
+                  :src="video.videoUrl"
+                  preload="metadata"
+                  class="hidden"
+                  @loadeddata="generateThumbnail(video)"
+                ></video>
+               
+                <canvas
+                  :id="'canvas-' + video.id"
                   class="w-full h-32 object-cover rounded-md"
-                />
-                <button
-                  class="mt-2 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500"
-                >
+                ></canvas>
+              </div>
+              </router-link>
+              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+                <button class="mt-2 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500">
                   Regarder
                 </button>
               </router-link>
@@ -193,10 +201,10 @@ export default {
       </div>
     </div>
   </div>
+
 </template>
 
 <style scoped>
-
 video::-webkit-media-controls {
   display: none !important;
 }
