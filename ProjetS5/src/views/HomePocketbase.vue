@@ -24,7 +24,7 @@ export default {
       this.isLoading = true;
 
       // Récupérer les données de PocketBase
-      const pb = new PocketBase('http://127.0.0.1:8090');
+      const pb = new PocketBase('http://0.0.0.0:10000');
       this.playlists = await pb.collection('playlists').getFullList();
       this.allVideos = await pb.collection('videos').getFullList(200);
 
