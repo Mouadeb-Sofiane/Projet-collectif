@@ -16,7 +16,7 @@ import HomePocketbase from './views/HomePocketbase.vue';
 
 // Définir les routes
 const routes = [
-  { path: '/', component: Home },      
+  { path: '/', component: HomePocketbase },      
   { path: '/about', component: AboutView },
   { path: '/carousel', component: CarouselView },
   { path: '/carouselAPI', component: Carousel },
@@ -24,7 +24,7 @@ const routes = [
   { path: '/video/:id', name: 'singleVideo', component: SingleVideoComponent }, 
   { path: '/pocketbasetest', component: PocketbaseTest },
   { path: '/singlepocketbase/:id', name: 'singleVideoPocket', component: SingleVideoPocketbase },
-  { path: '/homepocket', component:HomePocketbase }
+  { path: '/homepocket', component:Home }
 ];
 
 const router = createRouter({
