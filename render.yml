@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pocketbase-backend
+    env: docker
+    plan: free
+    dockerfilePath: pocketbase/DockerFile
+    autoDeploy: true
+    envVars:
+      PORT: 10000

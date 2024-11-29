@@ -1,0 +1,18 @@
+# Étape 1 : Utilisation de l'image Alpine (légère)
+FROM alpine:latest
+
+# Étape 2 : Installation des dépendances nécessaires (si PocketBase a besoin de libc ou autres)
+RUN apk add --no-cache libc6-compat
+
+# Étape 3 : Définir le répertoire de travail
+WORKDIR /app
+
+# Étape 4 : Copier les fichiers nécessaires dans l'image
+COPY pocketbase.exe /app/
+COPY start.sh /app/
+
+# Étape 5 : Donner les permissions d'exécution aux fichiers
+RUN chmod +x pocketbase.exe start.sh
+
+# Étape 6 : Commande de démarrage
+CMD ["./start.sh"]
