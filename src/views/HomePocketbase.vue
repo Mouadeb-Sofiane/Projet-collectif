@@ -35,9 +35,9 @@ export default {
         const videos = await pb.collection('videos').getFullList(200, {
           filter: `id_playlists = "${playlist.id}"`,
         });
+        
       this.playlistsVideos[playlist.id] = videos;
       }
-
 
       // Récupérer les playlists et vidéos YouTube
       const [ytPlaylists, ytVideos] = await Promise.all([
@@ -66,6 +66,7 @@ export default {
       this.isLoading = false;
     }
   },
+  
   methods: {
     // Génère une vidéo aléatoire à partir de PocketBase
     getRandomVideo() {
@@ -126,7 +127,13 @@ export default {
           {{ randomVideo ? randomVideo.title : liveVideo.snippet.title }}
         </h1>
         <p class="text-lg mb-[3rem] md:text-2xl md:mb-8 max-w-lg uppercase">
-          {{ randomVideo ? randomVideo.description : liveVideo.snippet.description }}
+        {{ randomVideo 
+          ? (randomVideo.description.length > 70 
+            ? randomVideo.description.slice(0, 70) + '...' 
+            : randomVideo.description) 
+          : (liveVideo.snippet.description.length > 70 
+            ? liveVideo.snippet.description.slice(0, 70) + '...' 
+            : liveVideo.snippet.description) }}
         </p>
       
       <!-- Bouton d'action -->
@@ -147,48 +154,8 @@ export default {
       </RouterLink>
       </div>
     </div>
-    </div>
+  </div>
 
-
-
-    <!-- Section Vidéos -->
-    <div v-if="playlistsVideos['yt'] && playlistsVideos['yt'].length">
-      <h2 class="text-3xl font-bold text-center my-6">Mes Playlists YouTube</h2>
-      
-      <PlayIcon class="w-6 h-6 mr-2" />
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="playlist in playlistsVideos['yt']"
-          :key="playlist.id"
-          class="playlist-block bg-white rounded-lg shadow-md p-4"
-        >
-          <div class="playlist-thumbnail">
-            <img
-              :src="playlist.snippet.thumbnails.medium.url"
-              :alt="playlist.snippet.title"
-              class="w-full rounded-lg mb-2"
-            />
-            <h3 class="text-lg font-semibold">{{ playlist.snippet.title }}</h3>
-          </div>
-          <div v-if="playlist.videos" class="space-y-4">
-            <div
-              v-for="video in playlist.videos"
-              :key="video.id"
-              class="video-item flex flex-col items-center"
-            >
-              <iframe
-                :src="`https://www.youtube.com/embed/${video.snippet.resourceId.videoId}`"
-                class="w-full h-40 object-cover rounded-md"
-                frameborder="0"
-                allowfullscreen
-              ></iframe>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-   
     <!-- Section Playlists et vidéos PocketBase -->
     <div v-if="playlists.length && !isLoading">
       <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
@@ -199,7 +166,8 @@ export default {
           :key="playlist.id"
           class="playlist-block bg-white rounded-lg shadow-md p-4"
         >
-          <h3 class="text-lg font-semibold text-center mb-2">{{ playlist.title }}</h3>
+          <h3 class="text-lg font-semibold text-center mb-2 text-black">{{ playlist.title }}</h3>
+          
           <div v-if="playlistsVideos[playlist.id]?.length">
             <div
               v-for="video in playlistsVideos[playlist.id]"

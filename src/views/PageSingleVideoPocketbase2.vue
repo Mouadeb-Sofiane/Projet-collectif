@@ -27,7 +27,7 @@ export default {
 };
 </script>
 <template>
-  <div class="p-4">
+  <div class="p-4 bg-black  text-white">
     <!-- Afficher un message de chargement -->
     <div v-if="isLoading" class="text-center">
       <p>Chargement de la vidéo...</p>
@@ -57,5 +57,23 @@ export default {
       </p>
       <p>Durée : {{ video.duree }}</p>
     </div>
+    <div>
+    <h3>Description</h3>
+      <p>{{ video?.description }}</p>
+      <button>Partager</button>
+    <h3>Casting</h3>
+      <p>{{ video?.casting }}</p> 
+    <h3>Réaliser par</h3>
+      <p>{{ video?.realisation }}</p>
+
+    <p v-if="video?.date" class="text-sm text-gray-500 mt-4 text-center">
+      Date de publication : {{ new Date(video.date).toLocaleDateString('fr-FR') }}
+    </p>
+    <p v-else class="text-sm text-gray-500 mt-4 text-center">
+      Date de publication : Non disponible
+    </p>
+    <p>Durée : {{ video?.duree !== null && video?.duree !== undefined ? video.duree : 'Non disponible' }}</p>
+  </div>
+
   </div>
 </template>
