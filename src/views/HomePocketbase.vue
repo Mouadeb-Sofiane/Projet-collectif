@@ -12,8 +12,8 @@ export default {
     return {
       playlists: [], // Toutes les playlists (PocketBase + YouTube)
       playlistsVideos: {}, // Vidéos regroupées par playlist
-      allVideos: [], // Toutes les vidéos PocketBase
-      liveVideo: null, // Vidéo en live depuis YouTube
+      allVideos: [], // Toutes les vidéos de PocketBase
+      liveVideo: null, // Vidéo en direct depuis YouTube
       randomVideo: null, // Vidéo aléatoire de PocketBase
       isLoading: true, // Indicateur de chargement
       errorMessage: '', // Gestion des erreurs
@@ -22,42 +22,37 @@ export default {
   },
 
   async mounted() {
+    this.isLoading = true;
     try {
-      this.isLoading = true;
-
-      // Récupérer les données de PocketBase
       const pb = new PocketBase('http://127.0.0.1:8090');
+
+      // Récupération des playlists et vidéos depuis PocketBase
       this.playlists = await pb.collection('playlists').getFullList();
       this.allVideos = await pb.collection('videos').getFullList(200);
 
-      // Associer les vidéos PocketBase aux playlists
       for (const playlist of this.playlists) {
         const videos = await pb.collection('videos').getFullList(200, {
-          filter: `id_playlists = "${playlist.id}"`,
+          filter: `id_playlists~"${playlist.id}"`,
         });
-        
-      this.playlistsVideos[playlist.id] = videos;
+        this.playlistsVideos[playlist.id] = videos;
       }
 
-      // Récupérer les playlists et vidéos YouTube
+      // Récupération des données YouTube
       const [ytPlaylists, ytVideos] = await Promise.all([
         fetchYouTubePlaylists(),
         fetchYouTubeVideos(),
       ]);
-      
-      // Ajouter les playlists YouTube
+
       this.playlists = [...this.playlists, ...ytPlaylists];
       this.playlistsVideos['yt'] = ytVideos;
 
-      // Récupérer le live YouTube
+      // Récupération du live YouTube
       this.liveVideo = await fetchLiveStream();
+      this.status = this.liveVideo ? 'EN DIRECT' : 'EMISSION';
 
-      // Définir le statut en fonction de la disponibilité du live
-      if (this.liveVideo) {
-        this.status = 'EN DIRECT';
-      } else if (this.allVideos.length > 0) {
+      // Sélectionner une vidéo aléatoire si aucune vidéo en direct
+      if (!this.liveVideo && this.allVideos.length > 0) {
         this.randomVideo = this.getRandomVideo();
-        this.status = 'EMISSION';
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
@@ -66,15 +61,15 @@ export default {
       this.isLoading = false;
     }
   },
-  
+
   methods: {
-    // Génère une vidéo aléatoire à partir de PocketBase
     getRandomVideo() {
       const randomIndex = Math.floor(Math.random() * this.allVideos.length);
       return this.allVideos[randomIndex];
     },
   },
 };
+
 </script>
 
 <template>
@@ -157,49 +152,35 @@ export default {
   </div>
 
     <!-- Section Playlists et vidéos PocketBase -->
-    <div v-if="playlists.length && !isLoading">
+    <!-- Playlists et vidéos -->
+    <div v-if="playlists.length && !isLoading" class="playlists text-black">
       <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
-
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="playlist in playlists"
           :key="playlist.id"
-          class="playlist-block bg-white rounded-lg shadow-md p-4"
+          class="playlist bg-white p-4 rounded-lg shadow-md"
         >
-          <h3 class="text-lg font-semibold text-center mb-2 text-black">{{ playlist.title }}</h3>
-          
+          <h3 class="text-lg font-bold text-center">{{ playlist.title }}</h3>
           <div v-if="playlistsVideos[playlist.id]?.length">
-            <div
-              v-for="video in playlistsVideos[playlist.id]"
-              :key="video.id"
-              class="video-item flex flex-col items-center"
-            >
-              <h4 class="text-sm font-medium">{{ video.title }}</h4>
-              <PlayIcons />
+            <div v-for="video in playlistsVideos[playlist.id]" :key="video.id" class="video-item">
+              <h3>{{ video.title }}</h3>
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-              <div class="video-thumbnail mt-2">
-                <video
-                  :id="'video-' + video.id"
-                  :src="video.videoUrl"
-                  preload="metadata"
-                  class="hidden"
-                  @loadeddata="generateThumbnail(video)"
-                ></video>
-                <img :src="`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`" alt="minia">
-              </div>
+                <img :src="video.thumbnailUrl" alt="Thumbnail" class="w-full rounded-md" />
               </router-link>
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-                <button class="mt-2 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500">
-                  Regarder
-                </button>
+              <button class="w-full mt-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                Regarder
+              </button>
               </router-link>
             </div>
           </div>
+          <p v-else class="text-center text-gray-500">Aucune vidéo disponible.</p>
         </div>
       </div>
     </div>
   </div>
-</div>
+  </div>
 
 </template>
 
