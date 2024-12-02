@@ -74,6 +74,5 @@ export default {
     </p>
     <p>Durée : {{ video?.duree !== null && video?.duree !== undefined ? video.duree : 'Non disponible' }}</p>
   </div>
-
-  </div>
+</div>
 </template>
