@@ -5,6 +5,7 @@ import {
   fetchYouTubePlaylists,
   fetchLiveStream,
 } from '@/services/YoutubeServices';
+import { RouterLink } from 'vue-router';
 
 export default {
   data() {
@@ -16,6 +17,7 @@ export default {
       randomVideo: null, // Vidéo aléatoire de PocketBase
       isLoading: true, // Indicateur de chargement
       errorMessage: '', // Gestion des erreurs
+      status: '', // Statut actuel
     };
   },
 
@@ -24,24 +26,25 @@ export default {
       this.isLoading = true;
 
       // Récupérer les données de PocketBase
-      const pb = new PocketBase('http://0.0.0.0:10000');
+      const pb = new PocketBase('http://127.0.0.1:8090');
       this.playlists = await pb.collection('playlists').getFullList();
       this.allVideos = await pb.collection('videos').getFullList(200);
 
       // Associer les vidéos PocketBase aux playlists
       for (const playlist of this.playlists) {
         const videos = await pb.collection('videos').getFullList(200, {
-          filter: `id_playlists~"${playlist.id}"`,
+          filter: `id_playlists = "${playlist.id}"`,
         });
-        this.playlistsVideos[playlist.id] = videos;
+      this.playlistsVideos[playlist.id] = videos;
       }
+
 
       // Récupérer les playlists et vidéos YouTube
       const [ytPlaylists, ytVideos] = await Promise.all([
         fetchYouTubePlaylists(),
         fetchYouTubeVideos(),
       ]);
-
+      
       // Ajouter les playlists YouTube
       this.playlists = [...this.playlists, ...ytPlaylists];
       this.playlistsVideos['yt'] = ytVideos;
@@ -49,9 +52,12 @@ export default {
       // Récupérer le live YouTube
       this.liveVideo = await fetchLiveStream();
 
-      // Si aucun live, sélectionner une vidéo aléatoire de PocketBase
-      if (!this.liveVideo && this.allVideos.length > 0) {
+      // Définir le statut en fonction de la disponibilité du live
+      if (this.liveVideo) {
+        this.status = 'EN DIRECT';
+      } else if (this.allVideos.length > 0) {
         this.randomVideo = this.getRandomVideo();
+        this.status = 'EMISSION';
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
@@ -71,32 +77,21 @@ export default {
 </script>
 
 <template>
-  
-    <!-- Chargement en cours -->
-    <div v-if="isLoading" class="flex items-center justify-center h-screen">
-      <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
-    </div>
+  <div class="bg-black text-white">
+  <!-- Chargement en cours -->
+  <div v-if="isLoading" class="flex items-center justify-center h-screen">
+    <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
+  </div>
 
-    <!-- Affichage des erreurs -->
-    <div v-if="errorMessage" class="text-center text-red-500">
-      <p>{{ errorMessage }}</p>
-    </div>
+  <!-- Affichage des erreurs -->
+  <div v-if="errorMessage" class="text-center text-red-500">
+    <p>{{ errorMessage }}</p>
+  </div>
 
-    <!-- Vidéo en direct ou vidéo aléatoire -->
-    <div class="">
-    <!-- Chargement en cours -->
-    <div v-if="isLoading" class="flex items-center justify-center h-screen">
-      <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
-    </div>
-
-    <!-- Affichage des erreurs -->
-    <div v-if="errorMessage" class="text-center text-red-500">
-      <p>{{ errorMessage }}</p>
-    </div>
-
-    <!-- Vidéo en direct ou vidéo aléatoire -->
+  <!-- Vidéo en direct ou vidéo aléatoire -->
   <div v-if="liveVideo || randomVideo" class="featured-video mb-12">
     <div class="relative w-full h-screen overflow-hidden">
+      <!-- Vidéo YouTube -->
       <iframe
         v-if="liveVideo && liveVideo.id && liveVideo.id.videoId"
         :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
@@ -105,50 +100,63 @@ export default {
         allow="autoplay; encrypted-media"
       ></iframe>
 
+      <!-- Vidéo locale -->
       <video
         v-if="randomVideo && randomVideo.id && randomVideo.VideoTele"
         :src="`http://127.0.0.1:8090/api/files/videos/${randomVideo.id}/${randomVideo.VideoTele}`"
-         class="w-full h-full object-cover"
+        class="w-full h-full object-cover"
         autoplay
         muted
         loop
         playsinline
       ></video>
+
+      <!-- Dégradés -->
       <div 
         class="absolute inset-x-0 bottom-0"
-        style="background:linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);height:20%;"
+        style="background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); height: 50%;"
       ></div>
-      <div class="absolute inset-0 flex flex-col justify-end items-center text-center p-6 text-white">
-        <h1 class="text-xl font-[400] mb-[1rem]">EN VEDETTE</h1>
-        <h1 class="text-5xl font-[800] mb-[3rem]">
+
+      <!-- Contenu textuel -->
+      <div
+        class="absolute  inset-0 flex flex-col justify-end items-center text-center md:text-start p-6 text-white md:justify-center md:items-start md:p-12"
+      >
+        <h1 class="text-xl font-[400] mb-[1rem] md:text-sm md:mb-12 tracking-[0.5em]">{{ status }}</h1>
+        <h1 class="text-xl font-[800] mb-[3rem] md:text-5xl lg:text-7xl md:mb-8 max-w-2xl uppercase">
           {{ randomVideo ? randomVideo.title : liveVideo.snippet.title }}
         </h1>
-        <p class="text-lg mb-[3rem]">
+        <p class="text-lg mb-[3rem] md:text-2xl md:mb-8 max-w-lg uppercase">
           {{ randomVideo ? randomVideo.description : liveVideo.snippet.description }}
         </p>
-        <button
-            v-if="liveVideo && liveVideo.id && liveVideo.id.videoId"
-            :href="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
-            class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
-        >
-          Voir le direct
-        </button>
-
-        <button
-            v-else-if="randomVideo && randomVideo.id"
-          :to="{ name: 'singleVideoPocket', params: { id: randomVideo.id } }"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
-          >
-          Lecture
-        </button>
-
+      
+      <!-- Bouton d'action -->
+      <div>
+      <button
+        v-if="liveVideo && liveVideo.id && liveVideo.id.videoId"
+        :href="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
+        class="bg-white hover:bg-gray-300 text-rouges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
+      >
+        VOIR LE DIRECT
+      </button>
+      <RouterLink
+        v-else-if="randomVideo && randomVideo.id"
+        :to="{ name: 'singleVideoPocket', params: { id: randomVideo.id } }"
+        class="bg-white hover:bg-gray-300 text-oranges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
+      >
+        LECTURE
+      </RouterLink>
       </div>
     </div>
-  </div>
+    </div>
+
+
 
     <!-- Section Vidéos -->
     <div v-if="playlistsVideos['yt'] && playlistsVideos['yt'].length">
       <h2 class="text-3xl font-bold text-center my-6">Mes Playlists YouTube</h2>
+      
+      <PlayIcon class="w-6 h-6 mr-2" />
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="playlist in playlistsVideos['yt']"
@@ -180,10 +188,11 @@ export default {
         </div>
       </div>
     </div>
-
+   
     <!-- Section Playlists et vidéos PocketBase -->
     <div v-if="playlists.length && !isLoading">
       <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="playlist in playlists"
@@ -198,6 +207,7 @@ export default {
               class="video-item flex flex-col items-center"
             >
               <h4 class="text-sm font-medium">{{ video.title }}</h4>
+              <PlayIcons />
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
               <div class="video-thumbnail mt-2">
                 <video
@@ -221,6 +231,7 @@ export default {
       </div>
     </div>
   </div>
+</div>
 
 </template>
 
