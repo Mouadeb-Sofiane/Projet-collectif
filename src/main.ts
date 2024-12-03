@@ -15,7 +15,7 @@ import SingleVideoPocketbase from './views/PageSingleVideoPocketbase.vue';
 import HomePocketbase from './views/HomePocketbase.vue';
 import SinglePocketbase2 from './views/PageSingleVideoPocketbase2.vue';
 
-// Définir les routes
+// Définir les routesdv
 const routes = [
   { path: '/', component: HomePocketbase },      
   { path: '/about', component: AboutView },
@@ -26,8 +26,7 @@ const routes = [
   { path: '/pocketbasetest', component: PocketbaseTest },
   { path: '/singlepocketbase/:id', name: 'singleVideoPocket', component: SingleVideoPocketbase },
   { path: '/singlepocketbase2/:id', name: 'singleVideoPocket2', component: SinglePocketbase2 },
-  { path: '/homepocket', component:Home }
-];
+  { path: '/homepocket', component:Home }];
 
 const router = createRouter({
   history: createWebHistory(),
