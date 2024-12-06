@@ -21,7 +21,7 @@ const closeMobileMenu = () => {
         <div class="flex justify-between items-center">
           <RouterLink to="/" class="py-4">
             <div class="flex-shrink-0">
-              <img src="../assets/img/SM-logo.png" class="h-12" alt="logo du site"/>
+              <img src="../img/WEBTV.png" class="h-12" alt="logo du site"/>
             </div>
           </RouterLink>
           
