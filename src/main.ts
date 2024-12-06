@@ -14,6 +14,11 @@ import PocketbaseTest from './views/PocketbaseTest.vue';
 import SingleVideoPocketbase from './views/PageSingleVideoPocketbase.vue';
 import HomePocketbase from './views/HomePocketbase.vue';
 import SinglePocketbase2 from './views/PageSingleVideoPocketbase2.vue';
+import NewsRoom from './views/NewsRoom.vue';
+import Rediffusions from './views/Rediffusions.vue';
+import Reportages from './views/Reportages.vue';
+import Emissions from './views/Emissions.vue';
+import APropos from './views/APropos.vue';
 
 // Définir les routesdv
 const routes = [
@@ -26,6 +31,11 @@ const routes = [
   { path: '/pocketbasetest', component: PocketbaseTest },
   { path: '/singlepocketbase/:id', name: 'singleVideoPocket', component: SingleVideoPocketbase },
   { path: '/singlepocketbase2/:id', name: 'singleVideoPocket2', component: SinglePocketbase2 },
+  { path: '/newsroom', component: NewsRoom },
+  { path: '/rediffusions', component: Rediffusions },
+  { path: '/reportages', component: Reportages },
+  { path: '/emissions', component: Emissions },
+  { path: '/apropos', component: APropos },
   { path: '/homepocket', component:Home }];
 
 const router = createRouter({

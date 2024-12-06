@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
-import SearchIcon from "./icons/SearchIcon.vue";
 
 const isOpen = ref(false);
 
@@ -43,16 +42,19 @@ const closeMobileMenu = () => {
           <div class="hidden md:block">
             <ul class="flex space-x-4">
               <li>
-                <RouterLink @click="closeMobileMenu" to="/" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Accueil</RouterLink>
+                <RouterLink @click="closeMobileMenu" to="/emissions" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Emissions</RouterLink>
               </li>
               <li>
-                <RouterLink @click="closeMobileMenu" to="/carouselAPI" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Playlists</RouterLink>
+                <RouterLink @click="closeMobileMenu" to="/reportages" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Reportages</RouterLink>
               </li>
               <li>
-                <RouterLink @click="closeMobileMenu" to="/carouseltest" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Carousel Test</RouterLink>
+                <RouterLink @click="closeMobileMenu" to="/rediffusions" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Rediffusions</RouterLink>
               </li>
               <li>
-                <RouterLink @click="closeMobileMenu" to="/pocketbasetest" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Pocketbase Test</RouterLink>
+                <RouterLink @click="closeMobileMenu" to="/apropos" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">A propos</RouterLink>
+              </li>
+              <li>
+                <RouterLink @click="closeMobileMenu" to="/newsroom" class="block py-2 pr-4 pl-3 text-gray-300 border-b border-transparent hover:text-gray-50">Newsroom</RouterLink>
               </li>
             </ul>
           </div>
@@ -66,16 +68,19 @@ const closeMobileMenu = () => {
         >
           <ul class="flex flex-col space-y-4">
             <li>
-              <RouterLink @click="closeMobileMenu" to="/" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">Accueil</RouterLink>
+              <RouterLink @click="closeMobileMenu" to="/emissions" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">Emissions</RouterLink>
             </li>
             <li>
-              <RouterLink @click="closeMobileMenu" to="/carouselAPI" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">Playlists</RouterLink>
+              <RouterLink @click="closeMobileMenu" to="/reportages" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">Reportages</RouterLink>
             </li>
             <li>
-              <RouterLink @click="closeMobileMenu" to="/carouseltest" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">Carousel Test</RouterLink>
+              <RouterLink @click="closeMobileMenu" to="/rediffusions" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">Rediffusions</RouterLink>
             </li>
             <li>
-              <RouterLink @click="closeMobileMenu" to="/pocketbasetest" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">Pocketbase Test</RouterLink>
+              <RouterLink @click="closeMobileMenu" to="/apropos" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">A propos</RouterLink>
+            </li>
+            <li>
+              <RouterLink @click="closeMobileMenu" to="/newsroom" class="block py-3 pr-4 pl-3 text-gray-200 rounded bg-primary-700">Newsroom</RouterLink>
             </li>
           </ul>
         </div>
