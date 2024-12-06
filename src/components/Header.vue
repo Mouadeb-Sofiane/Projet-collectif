@@ -8,7 +8,7 @@ const isOpen = ref(false);
 // Fonction pour ouvrir/fermer le menu mobile
 const toggleMobileMenu = () => {
   isOpen.value = !isOpen.value;
-  document.body.classList.toggle("no-scroll", isOpen.value); // Ajout ou retrait de la classe no-scroll
+  document.body.classList.toggle("no-scroll", isOpen.value); // Ajout ou re58trait de la classe no-scroll
 };
 
 // Fonction pour fermer le menu mobile
