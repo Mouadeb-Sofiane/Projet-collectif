@@ -24,6 +24,7 @@ const closeMobileMenu = () => {
               <img src="../img/WEBTV.png" class="h-12" alt="logo du site"/>
             </div>
           </RouterLink>
+        
           
           <!-- Bouton du menu mobile -->
           <button 
