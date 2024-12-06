@@ -123,8 +123,8 @@ export default {
       <div
         class="absolute  inset-0 flex flex-col justify-end items-center text-center md:text-start p-6 text-white md:justify-center md:items-start md:p-12"
       >
-        <h1 class="text-xl font-[400] mb-[1rem] md:text-sm md:mb-12 tracking-[0.5em]">{{ status }}</h1>
-        <h1 class="text-xl font-[800] mb-[3rem] md:text-5xl lg:text-7xl md:mb-8 max-w-2xl uppercase">
+        <h1 class="text-sm font-[400] mb-[1rem] md:text-sm md:mb-12 tracking-[0.5em]">{{ status }}</h1>
+        <h1 class="text-5xl font-[800] mb-[3rem] md:text-5xl lg:text-7xl md:mb-8 max-w-2xl uppercase">
           {{ randomVideo ? randomVideo.title : liveVideo.snippet.title }}
         </h1>
         <p class="text-lg mb-[3rem] md:text-2xl md:mb-8 max-w-lg uppercase">
@@ -146,13 +146,23 @@ export default {
       >
         VOIR LE DIRECT
       </button>
+      
       <RouterLink
-        v-else-if="randomVideo && randomVideo.id"
-        :to="{ name: 'singleVideoPocket', params: { id: randomVideo.id } }"
-        class="bg-white hover:bg-gray-300 text-oranges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
-      >
-        LECTURE
-      </RouterLink>
+    v-else-if="randomVideo && randomVideo.id"
+    :to="{ name: 'singleVideoPocket', params: { id: randomVideo.id } }"
+    class="bg-white hover:bg-gray-300 text-oranges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
+>
+    LECTURE
+</RouterLink>
+
+
+<RouterLink
+    class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all ml-8"
+>
+    PLUS D'INFO
+</RouterLink>
+
+      
       </div>
     </div>
   </div>
