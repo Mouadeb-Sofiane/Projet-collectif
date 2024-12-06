@@ -17,6 +17,7 @@ const closeMobileMenu = () => {
   document.body.classList.remove("no-scroll"); // Suppression de la classe no-scroll
 };
 </script>
+
 <template>
   <header class="w-full fixed top-0 z-50">
     <nav
@@ -24,7 +25,7 @@ const closeMobileMenu = () => {
       style="background: linear-gradient(rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%)"
     >
       <div class="container h-full px-4 md:px-8 p-5">
-        <div class="flex  items-center">
+        <div class="flex items-center">
           <!-- Logo -->
           <RouterLink to="/" class="flex-shrink-0">
             <img src="../img/WEBTV.png" class="h-12" alt="logo du site" />
@@ -52,7 +53,7 @@ const closeMobileMenu = () => {
           <!-- Bouton menu mobile -->
           <button
             @click="toggleMobileMenu"
-            class="md:hidden text-white hover:text-gray-300 focus:outline-none"
+            class="md:hidden text-white hover:text-gray-300 focus:outline-none absolute top-4 right-4"
           >
             <!-- Icône menu -->
             <svg v-if="!isOpen" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
@@ -149,6 +150,7 @@ const closeMobileMenu = () => {
     </nav>
   </header>
 </template>
+
 <style>
 .no-scroll {
   overflow: hidden;
