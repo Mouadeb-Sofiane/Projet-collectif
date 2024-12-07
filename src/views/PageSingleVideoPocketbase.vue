@@ -28,7 +28,7 @@ export default {
         };
 
         // Déterminer le statut en fonction des données récupérées
-        this.status = fetchedVideo.isLive ? 'EN DIRECT' : 'EMISSION';
+        this.status = fetchedVideo.isLive ? 'EN DIRECT' : 'ÉMISSION';
       } else {
         this.errorMessage = 'Vidéo introuvable.';
       }
@@ -64,11 +64,19 @@ export default {
       playsinline>
     </video>
   
+    <!-- Dégradés -->
     <div 
-      class="absolute inset-x-0 bottom-0"
-      style="background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); height: 50%;"
+        class="absolute inset-x-0 bottom-0"
+        style="background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); height: 50%;"
+      ></div>
+
+       <!-- Dégradé sur la gauche (uniquement pour desktop >= 768px) -->
+    <div 
+      class="hidden md:block absolute inset-y-0 left-0"
+      style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); width: 50%;"
     ></div>
-  
+
+    <!-- Titre et description -->
     <div class="absolute inset-0 flex flex-col justify-end items-center text-center md:text-start p-6 text-white md:justify-center md:items-start md:p-12">
       <h1 v-if="video.title" class="text-xl font-[800] mb-[3rem] md:text-5xl lg:text-7xl md:mb-8 max-w-2xl uppercase">
         {{ video.title }}
