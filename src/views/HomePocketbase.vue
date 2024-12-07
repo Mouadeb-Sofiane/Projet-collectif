@@ -10,14 +10,18 @@ import { RouterLink } from 'vue-router';
 export default {
   data() {
     return {
-      playlists: [], // Toutes les playlists (PocketBase + YouTube)
-      playlistsVideos: {}, // Vidéos regroupées par playlist
-      allVideos: [], // Toutes les vidéos de PocketBase
-      liveVideo: null, // Vidéo en direct depuis YouTube
-      randomVideo: null, // Vidéo aléatoire de PocketBase
-      isLoading: true, // Indicateur de chargement
-      errorMessage: '', // Gestion des erreurs
-      status: '', // Statut actuel
+      playlists: [], 
+      playlistsVideos: {}, 
+      allVideos: [], 
+      liveVideo: null, 
+      sliderVideos: [], 
+      currentVideoIndex: 0, 
+      sliderInterval: null, 
+      progressInterval: null,
+      progressPercentage: 0,
+      isLoading: true, 
+      errorMessage: '', 
+      status: '', 
     };
   },
 
@@ -26,7 +30,6 @@ export default {
     try {
       const pb = new PocketBase('http://127.0.0.1:8090');
 
-      // Récupération des playlists et vidéos depuis PocketBase
       this.playlists = await pb.collection('playlists').getFullList();
       this.allVideos = await pb.collection('videos').getFullList(200);
 
@@ -37,7 +40,6 @@ export default {
         this.playlistsVideos[playlist.id] = videos;
       }
 
-      // Récupération des données YouTube
       const [ytPlaylists, ytVideos] = await Promise.all([
         fetchYouTubePlaylists(),
         fetchYouTubeVideos(),
@@ -46,14 +48,11 @@ export default {
       this.playlists = [...this.playlists, ...ytPlaylists];
       this.playlistsVideos['yt'] = ytVideos;
 
-      // Récupération du live YouTube
       this.liveVideo = await fetchLiveStream();
       this.status = this.liveVideo ? 'EN DIRECT' : 'ÉMISSION';
 
-      // Sélectionner une vidéo aléatoire si aucune vidéo en direct
-      if (!this.liveVideo && this.allVideos.length > 0) {
-        this.randomVideo = this.getRandomVideo();
-      }
+      this.prepareSliderVideos();
+      this.startSlider();
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
       this.errorMessage = 'Une erreur est survenue lors du chargement des données.';
@@ -63,142 +62,232 @@ export default {
   },
 
   methods: {
-    getRandomVideo() {
-      const randomIndex = Math.floor(Math.random() * this.allVideos.length);
-      return this.allVideos[randomIndex];
+    prepareSliderVideos() {
+      this.sliderVideos = [];
+
+      if (this.liveVideo) {
+        this.sliderVideos.push({
+          type: 'youtube',
+          data: this.liveVideo
+        });
+      }
+
+      const shuffledVideos = this.shuffleArray(this.allVideos);
+      const additionalVideos = shuffledVideos.slice(0, 4);
+      
+      this.sliderVideos.push(...additionalVideos.map(video => ({
+        type: 'local',
+        data: video
+      })));
     },
+
+    startSlider() {
+      if (this.sliderVideos.length > 0) {
+        this.startProgressBar();
+        this.sliderInterval = setInterval(() => {
+          this.nextSlide();
+        }, 5000);
+      }
+    },
+
+    nextSlide() {
+      this.currentVideoIndex = (this.currentVideoIndex + 1) % this.sliderVideos.length;
+      this.resetProgressBar();
+    },
+
+    goToSlide(index) {
+      // Stop current intervals
+      if (this.sliderInterval) {
+        clearInterval(this.sliderInterval);
+      }
+      if (this.progressInterval) {
+        clearInterval(this.progressInterval);
+      }
+
+      // Set new index
+      this.currentVideoIndex = index;
+      
+      // Restart slider and progress
+      this.startSlider();
+    },
+
+    startProgressBar() {
+      this.progressPercentage = 0;
+      if (this.progressInterval) {
+        clearInterval(this.progressInterval);
+      }
+      
+      this.progressInterval = setInterval(() => {
+        this.progressPercentage += 1;
+        if (this.progressPercentage >= 100) {
+          clearInterval(this.progressInterval);
+          this.nextSlide();
+        }
+      }, 50); // Adjust for smoother progression
+    },
+
+    resetProgressBar() {
+      if (this.progressInterval) {
+        clearInterval(this.progressInterval);
+      }
+      this.startProgressBar();
+    },
+
+    shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    },
+
+    beforeUnmount() {
+      if (this.sliderInterval) {
+        clearInterval(this.sliderInterval);
+      }
+      if (this.progressInterval) {
+        clearInterval(this.progressInterval);
+      }
+    }
   },
 };
-
 </script>
 
 <template>
-  <div class="bg-black text-white">
-  <!-- Chargement en cours -->
-  <div v-if="isLoading" class="flex items-center justify-center h-screen">
-    <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
-  </div>
-
-  <!-- Affichage des erreurs -->
-  <div v-if="errorMessage" class="text-center text-red-500">
-    <p>{{ errorMessage }}</p>
-  </div>
-
-  <!-- Vidéo en direct ou vidéo aléatoire -->
-  <div v-if="liveVideo || randomVideo" class="featured-video mb-12">
-    <div class="relative w-full h-screen overflow-hidden">
-      <!-- Vidéo YouTube -->
-      <iframe
-        v-if="liveVideo && liveVideo.id && liveVideo.id.videoId"
-        :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
-        class="w-full h-full object-cover"
-        frameborder="0"
-        allow="autoplay; encrypted-media"
-      ></iframe>
-
-      <!-- Vidéo locale -->
-      <video
-        v-if="randomVideo && randomVideo.id && randomVideo.VideoTele"
-        :src="`http://127.0.0.1:8090/api/files/videos/${randomVideo.id}/${randomVideo.VideoTele}`"
-        class="w-full h-full object-cover"
-        autoplay
-        muted
-        loop
-        playsinline
-      ></video>
-
-      <!-- Dégradés -->
-      <div 
-        class="absolute inset-x-0 bottom-0"
-        style="background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); height: 50%;"
-      ></div>
-
-       <!-- Dégradé sur la gauche (uniquement pour desktop >= 768px) -->
-    <div 
-      class="hidden md:block absolute inset-y-0 left-0"
-      style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); width: 50%;"
-    ></div>
-
-      <!-- Contenu textuel -->
-      <div
-        class="absolute  inset-0 flex flex-col justify-end items-center text-center md:text-start p-6 text-white md:justify-center md:items-start md:p-12"
-      >
-        <h1 class="text-sm font-[400] mb-[1rem] md:text-sm md:mb-12 tracking-[0.5em]">{{ status }}</h1>
-        <h1 class="text-5xl font-[800] mb-[3rem] md:text-5xl lg:text-7xl md:mb-8 max-w-2xl uppercase">
-          {{ randomVideo ? randomVideo.title : liveVideo.snippet.title }}
-        </h1>
-        <p class="text-lg mb-[3rem] md:text-2xl md:mb-8 max-w-lg uppercase">
-        {{ randomVideo 
-          ? (randomVideo.description.length > 70 
-            ? randomVideo.description.slice(0, 70) + '...' 
-            : randomVideo.description) 
-          : (liveVideo.snippet.description.length > 70 
-            ? liveVideo.snippet.description.slice(0, 70) + '...' 
-            : liveVideo.snippet.description) }}
-        </p>
-      
-      <!-- Bouton d'action -->
-      <div>
-      <button
-        v-if="liveVideo && liveVideo.id && liveVideo.id.videoId"
-        :href="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
-        class="bg-white hover:bg-gray-300 text-rouges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
-      >
-        VOIR LE DIRECT
-      </button>
-      
-      <RouterLink
-    v-else-if="randomVideo && randomVideo.id"
-    :to="{ name: 'singleVideoPocket2', params: { id: randomVideo.id } }"
-    class="bg-white hover:bg-gray-300 text-oranges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
->
-    LECTURE
-</RouterLink>
-
-
-<RouterLink
-    :to="{ name: 'singleVideoPocket', params: { id: randomVideo.id } }"
-    class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all ml-8"
->
-    PLUS D'INFO
-</RouterLink>
-
-      
-      </div>
+  <div class="bg-black text-white relative">
+    <!-- Chargement en cours -->
+    <div v-if="isLoading" class="flex items-center justify-center h-screen">
+      <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
     </div>
-  </div>
 
-    <!-- Section Playlists et vidéos PocketBase -->
-    <!-- Playlists et vidéos -->
-    <div v-if="playlists.length && !isLoading" class="playlists text-black">
-      <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="playlist in playlists"
-          :key="playlist.id"
-          class="playlist bg-white p-4 rounded-lg shadow-md"
+    <!-- Affichage des erreurs -->
+    <div v-if="errorMessage" class="text-center text-red-500">
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- Slider de vidéos -->
+    <div v-if="sliderVideos.length && !isLoading" class="relative h-screen w-full">
+      <div class="absolute inset-0">
+        <div 
+          v-for="(video, index) in sliderVideos" 
+          :key="index" 
+          class="absolute inset-0 transition-opacity duration-500"
+          :class="{ 'opacity-100': index === currentVideoIndex, 'opacity-0': index !== currentVideoIndex }"
         >
-          <h3 class="text-lg font-bold text-center">{{ playlist.title }}</h3>
-          <div v-if="playlistsVideos[playlist.id]?.length">
-            <div v-for="video in playlistsVideos[playlist.id]" :key="video.id" class="video-item">
-              <h3>{{ video.title }}</h3>
-              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-                <img :src="video.thumbnailUrl" alt="Thumbnail" class="w-full rounded-md" />
-              </router-link>
-              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-              <button class="w-full mt-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
-                Regarder
-              </button>
-              </router-link>
+          <!-- Vidéo YouTube -->
+          <iframe
+            v-if="video.type === 'youtube' && video.data.id && video.data.id.videoId"
+            :src="`https://www.youtube.com/embed/${video.data.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${video.data.id.videoId}`"
+            class="w-full h-full object-cover"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+          ></iframe>
+
+          <!-- Vidéo locale -->
+          <video
+            v-if="video.type === 'local' && video.data.id && video.data.VideoTele"
+            :src="`http://127.0.0.1:8090/api/files/videos/${video.data.id}/${video.data.VideoTele}`"
+            class="w-full h-full object-cover"
+            autoplay
+            muted
+            loop
+            playsinline
+          ></video>
+
+          <!-- Dégradés -->
+          <div 
+            class="absolute inset-x-0 bottom-0"
+            style="background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); height: 50%;"
+          ></div>
+
+          <div 
+            class="hidden md:block absolute inset-y-0 left-0"
+            style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); width: 50%;"
+          ></div>
+
+          <!-- Contenu textuel -->
+          <div
+            class="absolute inset-0 flex flex-col justify-end items-center text-center md:text-start p-6 text-white md:justify-center md:items-start md:p-12"
+          >
+            <h1 class="text-sm font-[400] mb-[1rem] md:text-sm md:mb-12 tracking-[0.5em]">
+              {{ video.type === 'youtube' ? 'EN DIRECT' : 'ÉMISSION' }}
+            </h1>
+            <h1 class="text-5xl font-[800] mb-[3rem] md:text-5xl lg:text-7xl md:mb-8 max-w-2xl uppercase">
+              {{ 
+                video.type === 'youtube' 
+                ? video.data.snippet.title 
+                : video.data.title 
+              }}
+            </h1>
+            <p class="text-lg mb-[3rem] md:text-2xl md:mb-8 max-w-lg uppercase">
+              {{ 
+                video.type === 'youtube' 
+                ? (video.data.snippet.description.length > 70 
+                  ? video.data.snippet.description.slice(0, 70) + '...' 
+                  : video.data.snippet.description)
+                : (video.data.description.length > 70 
+                  ? video.data.description.slice(0, 70) + '...' 
+                  : video.data.description)
+              }}
+            </p>
+          
+            <!-- Boutons d'action -->
+            <div>
+              <a
+                v-if="video.type === 'youtube'"
+                :href="`https://www.youtube.com/embed/${video.data.id.videoId}?autoplay=1`"
+                target="_blank"
+                class="bg-white hover:bg-gray-300 text-rouges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
+              >
+                VOIR LE DIRECT
+              </a>
+              
+              <RouterLink
+                v-else
+                :to="{ name: 'singleVideoPocket2', params: { id: video.data.id } }"
+                class="bg-white hover:bg-gray-300 text-oranges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
+              >
+                LECTURE
+              </RouterLink>
+
+              <RouterLink
+                v-if="video.type === 'local'"
+                :to="{ name: 'singleVideoPocket', params: { id: video.data.id } }"
+                class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all ml-8"
+              >
+                PLUS D'INFO
+              </RouterLink>
             </div>
           </div>
-          <p v-else class="text-center text-gray-500">Aucune vidéo disponible.</p>
+        </div>
+      </div>
+
+      <!-- Navigation Dots -->
+      <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
+        <div 
+          v-for="(video, index) in sliderVideos" 
+          :key="index" 
+          @click="goToSlide(index)"
+          class="w-4 h-4 rounded-full cursor-pointer relative"
+        >
+          <div 
+            class="absolute inset-0 rounded-full bg-white/30"
+          >
+            <div 
+              v-if="index === currentVideoIndex"
+              class="absolute left-0 top-0 h-full bg-white rounded-full transition-all duration-300 ease-linear"
+              :style="{ width: `${progressPercentage}%` }"
+            ></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  </div>
 
+    <!-- Reste de votre composant -->
+    <div v-if="playlists.length && !isLoading" class="playlists text-black">
+      <!-- Votre code existant pour les playlists -->
+    </div>
+  </div>
 </template>
 
 <style scoped>
