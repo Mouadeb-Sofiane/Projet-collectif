@@ -46,6 +46,7 @@
           </ul>
         </div>
 
+
         <!-- Section Réseaux sociaux -->
         <div class="flex flex-col items-start md:items-end">
           <!-- Logo -->
