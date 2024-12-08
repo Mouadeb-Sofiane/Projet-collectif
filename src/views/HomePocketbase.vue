@@ -10,18 +10,18 @@ import { RouterLink } from 'vue-router';
 export default {
   data() {
     return {
-      playlists: [], 
-      playlistsVideos: {}, 
-      allVideos: [], 
-      liveVideo: null, 
-      sliderVideos: [], 
-      currentVideoIndex: 0, 
-      sliderInterval: null, 
+      playlists: [],
+      playlistsVideos: {},
+      allVideos: [],
+      liveVideo: null,
+      sliderVideos: [],
+      currentVideoIndex: 0,
+      sliderInterval: null,
       progressInterval: null,
       progressPercentage: 0,
-      isLoading: true, 
-      errorMessage: '', 
-      status: '', 
+      isLoading: true,
+      errorMessage: '',
+      status: '',
     };
   },
 
@@ -30,6 +30,7 @@ export default {
     try {
       const pb = new PocketBase('http://127.0.0.1:8090');
 
+      // Chargement des playlists et vidéos locales
       this.playlists = await pb.collection('playlists').getFullList();
       this.allVideos = await pb.collection('videos').getFullList(200);
 
@@ -40,17 +41,21 @@ export default {
         this.playlistsVideos[playlist.id] = videos;
       }
 
+      // Chargement des données YouTube
       const [ytPlaylists, ytVideos] = await Promise.all([
         fetchYouTubePlaylists(),
         fetchYouTubeVideos(),
       ]);
 
+      // Fusion des playlists locales et YouTube
       this.playlists = [...this.playlists, ...ytPlaylists];
       this.playlistsVideos['yt'] = ytVideos;
 
+      // Chargement de la vidéo en direct
       this.liveVideo = await fetchLiveStream();
       this.status = this.liveVideo ? 'EN DIRECT' : 'ÉMISSION';
 
+      // Préparation des vidéos pour le slider
       this.prepareSliderVideos();
       this.startSlider();
     } catch (error) {
@@ -64,21 +69,14 @@ export default {
   methods: {
     prepareSliderVideos() {
       this.sliderVideos = [];
-
       if (this.liveVideo) {
-        this.sliderVideos.push({
-          type: 'youtube',
-          data: this.liveVideo
-        });
+        this.sliderVideos.push({ type: 'youtube', data: this.liveVideo });
       }
-
       const shuffledVideos = this.shuffleArray(this.allVideos);
       const additionalVideos = shuffledVideos.slice(0, 4);
-      
-      this.sliderVideos.push(...additionalVideos.map(video => ({
-        type: 'local',
-        data: video
-      })));
+      this.sliderVideos.push(
+        ...additionalVideos.map((video) => ({ type: 'local', data: video }))
+      );
     },
 
     startSlider() {
@@ -95,35 +93,18 @@ export default {
       this.resetProgressBar();
     },
 
-    goToSlide(index) {
-      // Stop current intervals
-      if (this.sliderInterval) {
-        clearInterval(this.sliderInterval);
-      }
-      if (this.progressInterval) {
-        clearInterval(this.progressInterval);
-      }
-
-      // Set new index
-      this.currentVideoIndex = index;
-      
-      // Restart slider and progress
-      this.startSlider();
-    },
-
     startProgressBar() {
       this.progressPercentage = 0;
       if (this.progressInterval) {
         clearInterval(this.progressInterval);
       }
-      
       this.progressInterval = setInterval(() => {
         this.progressPercentage += 1;
         if (this.progressPercentage >= 100) {
           clearInterval(this.progressInterval);
           this.nextSlide();
         }
-      }, 50); // Adjust for smoother progression
+      }, 50);
     },
 
     resetProgressBar() {
@@ -148,10 +129,11 @@ export default {
       if (this.progressInterval) {
         clearInterval(this.progressInterval);
       }
-    }
+    },
   },
 };
 </script>
+
 
 <template>
   <div class="bg-black text-white relative">
@@ -282,12 +264,36 @@ export default {
         </div>
       </div>
     </div>
-
-    <!-- Reste de votre composant -->
+ <!-- Section Playlists et vidéos PocketBase -->
+    <!-- Playlists et vidéos -->
     <div v-if="playlists.length && !isLoading" class="playlists text-black">
-      <!-- Votre code existant pour les playlists -->
+      <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="playlist in playlists"
+          :key="playlist.id"
+          class="playlist bg-white p-4 rounded-lg shadow-md"
+        >
+          <h3 class="text-lg font-bold text-center">{{ playlist.title }}</h3>
+          <div v-if="playlistsVideos[playlist.id]?.length">
+            <div v-for="video in playlistsVideos[playlist.id]" :key="video.id" class="video-item">
+              <h3>{{ video.title }}</h3>
+              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+                <img :src="video.thumbnailUrl" alt="Thumbnail" class="w-full rounded-md" />
+              </router-link>
+              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+              <button class="w-full mt-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                Regarder
+              </button>
+              </router-link>
+            </div>
+          </div>
+          <p v-else class="text-center text-gray-500">Aucune vidéo disponible.</p>
+        </div>
+      </div>
     </div>
   </div>
+  
 </template>
 
 <style scoped>
