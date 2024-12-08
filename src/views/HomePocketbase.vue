@@ -1,10 +1,6 @@
 <script>
 import PocketBase from 'pocketbase';
-import {
-  fetchYouTubeVideos,
-  fetchYouTubePlaylists,
-  fetchLiveStream,
-} from '@/services/YoutubeServices';
+import { fetchYouTubeVideos, fetchYouTubePlaylists, fetchLiveStream } from '@/services/YoutubeServices';
 import { RouterLink } from 'vue-router';
 
 export default {
@@ -22,6 +18,11 @@ export default {
       isLoading: true,
       errorMessage: '',
       status: '',
+      cache: {
+        playlists: null,
+        videos: null,
+        lastYouTubeFetch: 0,
+      },
     };
   },
 
@@ -30,10 +31,16 @@ export default {
     try {
       const pb = new PocketBase('http://127.0.0.1:8090');
 
-      // Chargement des playlists et vidéos locales
-      this.playlists = await pb.collection('playlists').getFullList();
-      this.allVideos = await pb.collection('videos').getFullList(200);
+      // Vérification du cache local pour PocketBase
+      if (!this.cache.playlists || !this.cache.videos) {
+        this.cache.playlists = await pb.collection('playlists').getFullList();
+        this.cache.videos = await pb.collection('videos').getFullList(200);
+      }
 
+      this.playlists = [...this.cache.playlists];
+      this.allVideos = [...this.cache.videos];
+
+      // Récupération des vidéos pour chaque playlist
       for (const playlist of this.playlists) {
         const videos = await pb.collection('videos').getFullList(200, {
           filter: `id_playlists~"${playlist.id}"`,
@@ -41,15 +48,19 @@ export default {
         this.playlistsVideos[playlist.id] = videos;
       }
 
-      // Chargement des données YouTube
-      const [ytPlaylists, ytVideos] = await Promise.all([
-        fetchYouTubePlaylists(),
-        fetchYouTubeVideos(),
-      ]);
+      // Limitation des requêtes API YouTube
+      const now = Date.now();
+      const fifteenMinutes = 15 * 60 * 1000;
+      if (now - this.cache.lastYouTubeFetch > fifteenMinutes) {
+        const [ytPlaylists, ytVideos] = await Promise.all([
+          fetchYouTubePlaylists(),
+          fetchYouTubeVideos(),
+        ]);
+        this.cache.lastYouTubeFetch = now;
 
-      // Fusion des playlists locales et YouTube
-      this.playlists = [...this.playlists, ...ytPlaylists];
-      this.playlistsVideos['yt'] = ytVideos;
+        this.playlists = [...this.playlists, ...ytPlaylists];
+        this.playlistsVideos['yt'] = ytVideos;
+      }
 
       // Chargement de la vidéo en direct
       this.liveVideo = await fetchLiveStream();
@@ -129,6 +140,27 @@ export default {
       return array;
     },
 
+    goToSlide(index) {
+      this.currentVideoIndex = index;
+      this.resetProgressBar();
+    },
+
+    captureThumbnail(videoUrl) {
+      const videoElement = document.createElement('video');
+      videoElement.src = videoUrl;
+      videoElement.currentTime = 1; // Capturer une image à 1 seconde
+      return new Promise((resolve) => {
+        videoElement.onseeked = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = videoElement.videoWidth;
+          canvas.height = videoElement.videoHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL()); // Retourne l'image sous forme de base64
+        };
+      });
+    },
+
     beforeUnmount() {
       if (this.sliderInterval) {
         clearInterval(this.sliderInterval);
@@ -140,8 +172,6 @@ export default {
   },
 };
 </script>
-
-
 
 <template>
   <div class="bg-black text-white relative">
@@ -281,33 +311,43 @@ export default {
  <!-- Section Playlists et vidéos PocketBase -->
     <!-- Playlists et vidéos -->
     <div v-if="playlists.length && !isLoading" class="playlists text-black">
-      <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="playlist in playlists"
-          :key="playlist.id"
-          class="playlist bg-white p-4 rounded-lg shadow-md"
-        >
-          <h3 class="text-lg font-bold text-center">{{ playlist.title }}</h3>
-          <div v-if="playlistsVideos[playlist.id]?.length">
-            <div v-for="video in playlistsVideos[playlist.id]" :key="video.id" class="video-item">
-              <h3>{{ video.title }}</h3>
-              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-                <img :src="video.thumbnailUrl" alt="Thumbnail" class="w-full rounded-md" />
-              </router-link>
-              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+    <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-for="playlist in playlists"
+        :key="playlist.id"
+        class="playlist bg-white p-4 rounded-lg shadow-md"
+      >
+        <h3 class="text-lg font-bold text-center">{{ playlist.title }}</h3>
+        <div v-if="playlistsVideos[playlist.id]?.length">
+          <div v-for="video in playlistsVideos[playlist.id]" :key="video.id" class="video-item">
+            <h3>{{ video.title }}</h3>
+
+            <!-- Lien vers la vidéo avec l'image extraite -->
+            <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+              <img :src="video.thumbnailUrl" alt="Thumbnail" class="w-full rounded-md" />
+            </router-link>
+
+            <!-- Lien vers la vidéo avec une vérification de snippet -->
+            <router-link 
+              v-if="video.snippet && video.snippet.resourceId"
+              :to="{ name: 'singleVideo', params: { id: video.snippet.resourceId.videoId || video.id } }">
+              <img :src="video.snippet.thumbnails.medium.url" :alt="video.snippet.title" class="video-image" />
+            </router-link>
+
+            <!-- Bouton pour visionner la vidéo -->
+            <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
               <button class="w-full mt-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
                 Regarder
               </button>
-              </router-link>
-            </div>
+            </router-link>
           </div>
-          <p v-else class="text-center text-gray-500">Aucune vidéo disponible.</p>
         </div>
+        <p v-else class="text-center text-gray-500">Aucune vidéo disponible.</p>
       </div>
     </div>
   </div>
-  
+</div>
 </template>
 
 <style scoped>
