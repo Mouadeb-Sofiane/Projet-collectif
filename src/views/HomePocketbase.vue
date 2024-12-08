@@ -94,17 +94,24 @@ export default {
     },
 
     startProgressBar() {
+      const duration = 5000; // Durée totale (5 secondes)
+      const interval = 10; // Mise à jour tous les 16 ms (environ 60 FPS)
+      const step = 100 / (duration / interval); // Calcul de l'incrément
+
       this.progressPercentage = 0;
+
       if (this.progressInterval) {
         clearInterval(this.progressInterval);
       }
+
       this.progressInterval = setInterval(() => {
-        this.progressPercentage += 1;
+        this.progressPercentage += step;
+
         if (this.progressPercentage >= 100) {
           clearInterval(this.progressInterval);
           this.nextSlide();
         }
-      }, 50);
+      }, interval);
     },
 
     resetProgressBar() {
@@ -133,6 +140,7 @@ export default {
   },
 };
 </script>
+
 
 
 <template>
@@ -214,7 +222,7 @@ export default {
             </p>
           
             <!-- Boutons d'action -->
-            <div>
+            <div class="mb-10">
               <a
                 v-if="video.type === 'youtube'"
                 :href="`https://www.youtube.com/embed/${video.data.id.videoId}?autoplay=1`"
@@ -245,25 +253,31 @@ export default {
       </div>
 
       <!-- Navigation Dots -->
-      <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
-        <div 
-          v-for="(video, index) in sliderVideos" 
-          :key="index" 
-          @click="goToSlide(index)"
-          class="w-4 h-4 rounded-full cursor-pointer relative"
-        >
-          <div 
-            class="absolute inset-0 rounded-full bg-white/30"
-          >
-            <div 
-              v-if="index === currentVideoIndex"
-              class="absolute left-0 top-0 h-full bg-white rounded-full transition-all duration-300 ease-linear"
-              :style="{ width: `${progressPercentage}%` }"
-            ></div>
-          </div>
-        </div>
-      </div>
+<div class="absolute bottom-4 md:bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
+  <div 
+    v-for="(video, index) in sliderVideos" 
+    :key="index" 
+    @click="goToSlide(index)"
+    class="w-5 h-5 relative cursor-pointer"
+  >
+    <!-- Cercle externe -->
+    <div 
+      class="absolute inset-0 rounded-full bg-white/30"
+    ></div>
+
+    <!-- Progression du cercle interne -->
+    <div 
+      v-if="index === currentVideoIndex" 
+      class="absolute inset-0 overflow-hidden rounded-full"
+    >
+      <div 
+        class="absolute top-0 left-0 h-full bg-white transition-all ease-linear"
+        :style="{ width: `${progressPercentage}%` }"
+      ></div>
     </div>
+  </div>
+</div>
+</div>
  <!-- Section Playlists et vidéos PocketBase -->
     <!-- Playlists et vidéos -->
     <div v-if="playlists.length && !isLoading" class="playlists text-black">
