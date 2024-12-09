@@ -151,9 +151,17 @@ export default {
           <div v-if="playlistsVideos[playlist.id]?.length">
             <div v-for="video in playlistsVideos[playlist.id]" :key="video.id" class="video-item">
               <h3 class="text-center mb-2">{{ video.title }}</h3>
+              
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-                <img :src="video.customThumbnail || video.thumbnailUrl" alt="Thumbnail" class="w-full rounded-md mb-2" />
+              <video 
+                v-if="video.VideoTele"
+                :src="`http://127.0.0.1:8090/api/files/videos/${video.id}/${video.VideoTele}`"
+                class="w-full h-full object-cover"
+                loop
+                playsinline>
+              </video>
               </router-link>
+              
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
                 <button class="w-full mt-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
                   Regarder
