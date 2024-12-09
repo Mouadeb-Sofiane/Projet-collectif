@@ -1,7 +1,4 @@
 <script>
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import 'swiper/swiper-bundle.css'; // Importation des styles de Swiper
-
 import {
   fetchYouTubeVideos,
   fetchYouTubePlaylists,
@@ -10,10 +7,6 @@ import {
 } from '@/services/YoutubeServices';
 
 export default {
-  components: {
-    Swiper,
-    SwiperSlide,
-  },
   data() {
     return {
       videos: [],
@@ -54,24 +47,43 @@ export default {
     <div v-if="playlists.length">
       <h2>Mes Playlists</h2>
       <div class="playlists-container">
-        <div v-for="(playlist, index) in playlists" :key="index" class="playlist-block">
+        <div
+          v-for="(playlist, index) in playlists"
+          :key="index"
+          class="playlist-block"
+        >
           <div class="playlist-thumbnail">
-            <img :src="playlist.snippet.thumbnails.medium.url" :alt="playlist.snippet.title" />
+            <img
+              :src="playlist.snippet.thumbnails.medium.url"
+              :alt="playlist.snippet.title"
+            />
             <h3>{{ playlist.snippet.title }}</h3>
           </div>
 
-          <!-- Carousel pour les vidéos de la playlist -->
-          <Swiper :slides-per-view="3" space-between="20" navigation class="playlist-carousel">
-            <SwiperSlide v-for="(video, index) in playlistsVideos[playlist.id]" :key="index" class="video-slide">
+          <!-- Grille des vidéos de la playlist -->
+          <div class="videos-grid">
+            <div
+              v-for="(video, index) in playlistsVideos[playlist.id]"
+              :key="index"
+              class="video-card"
+            >
               <h3>{{ video.snippet.title }}</h3>
-              <router-link :to="{ name: 'singleVideo', params: { id: video.snippet.resourceId.videoId || video.id } }">
-                <img :src="video.snippet.thumbnails.medium.url" :alt="video.snippet.title" class="video-image" />
+              <router-link
+                :to="{ name: 'singleVideo', params: { id: video.snippet.resourceId.videoId || video.id } }"
+              >
+                <img
+                  :src="video.snippet.thumbnails.medium.url"
+                  :alt="video.snippet.title"
+                  class="video-image"
+                />
               </router-link>
-              <router-link :to="{ name: 'singleVideo', params: { id: video.snippet.resourceId.videoId || video.id } }">
+              <router-link
+                :to="{ name: 'singleVideo', params: { id: video.snippet.resourceId.videoId || video.id } }"
+              >
                 <button>Regarder</button>
               </router-link>
-            </SwiperSlide>
-          </Swiper>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -87,33 +99,14 @@ export default {
   margin-bottom: 40px;
 }
 
-.playlist-carousel {
-  margin-top: 20px;
-  position: relative;
+.videos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Espacement entre les vidéos */
 }
 
-/* Positionne les flèches en dehors des vidéos et vers les bords de l'écran */
-.swiper-button-next, .swiper-button-prev {
-  color: #333; /* Personnalisation de la couleur */
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  padding: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-}
-
-.swiper-button-prev {
-  left: 0px; /* Place la flèche de gauche en dehors du conteneur, vers le bord gauche */
-}
-
-.swiper-button-next {
-  right: 0px; /* Place la flèche de droite en dehors du conteneur, vers le bord droit */
-}
-
-.video-slide {
+.video-card {
+  width: calc(33.333% - 20px); /* Affiche 3 vidéos par ligne */
   text-align: center;
 }
 
@@ -122,5 +115,20 @@ export default {
   height: auto;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button {
+  margin-top: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
 </style>
