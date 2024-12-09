@@ -54,7 +54,7 @@ const closeMobileMenu = () => {
           <!-- Bouton menu mobile -->
           <button
             @click="toggleMobileMenu"
-            class="md:hidden text-white hover:text-gray-300 focus:outline-none absolute top-4 right-4"
+            class="md:hidden text-white hover:text-gray-300 focus:outline-none absolute top-4 right-4 bg-inherit"
           >
             <!-- Icône menu -->
             <svg v-if="!isOpen" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
@@ -87,7 +87,7 @@ const closeMobileMenu = () => {
               <img src="../img/WEBTV.png" class="h-12" alt="logo du site" />
             </RouterLink>
             <!-- Bouton fermeture -->
-            <button @click="closeMobileMenu" class="text-white">
+            <button @click="closeMobileMenu" class="text-white bg-inherit">
               <svg viewBox="0 0 20 20" fill="white" class="w-8 h-8">
                 <path
                   fill-rule="evenodd"
