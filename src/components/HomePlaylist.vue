@@ -1,29 +1,29 @@
 <template>
-  <div class="carousel-container relative bg-black text-white p-6">
+  <div class="carousel-container relative bg-black text-white p-6 w-full">
     <h2 class="text-3xl font-bold text-center my-6">Revivez nos précédentes émissions</h2>
-    <div class="carousel relative overflow-hidden w-screen">
+    <div class="carousel relative overflow-hidden w-full">
       <!-- Liste des vignettes -->
       <div
-        class="flex transition-transform duration-700 ease-in-out"
+        class="flex transition-transform duration-700 ease-in-out w-full"
         :style="{ transform: `translateX(-${currentIndex * itemWidth}px)` }"
         ref="carouselTrack"
       >
         <div
           v-for="(video, index) in sliderVideos"
           :key="video.id"
-          class="carousel-item flex-shrink-0 w-full sm:w-1/2 lg:w-1/4 px-2"
+          class="carousel-item flex-shrink-0 w-full px-2"
+          :style="{ width: `${itemWidth}px` }"
         >
-          <div class="bg-gray-800 rounded-lg shadow-md">
-            <div class="relative overflow-hidden">
+          <div class=" rounded-lg shadow-md">
+            <div class="relative">
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
                 <img
                   :src="video.customThumbnail || video.defaultThumbnail"
                   alt="Vignette de la vidéo"
                   class="w-full h-40 object-cover rounded-t-lg"
-                  style="transform: translateX(10%);"
                 />
               </router-link>
-              <span class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+              <span class="bg-orange-500 absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
                 {{ formatDuration(video.duration) }}
               </span>
             </div>
@@ -37,18 +37,22 @@
       <button
         v-if="currentIndex > 0"
         @click="scrollPrev"
-        class="absolute top-1/2 left-0 transform -translate-y-1/2 w-12 h-full flex items-center justify-center text-white"
+        class="absolute top-1/2 left-2 transform -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center text-white hover:bg-opacity-80"
         style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);"
       >
-        <span class="text-2xl">&#8592;</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
       </button>
       <button
         v-if="currentIndex + visibleItems < sliderVideos.length"
         @click="scrollNext"
-        class="absolute top-1/2 right-0 transform -translate-y-1/2 w-12 h-full flex items-center justify-center text-white"
+        class="absolute top-1/2 right-2 transform -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center text-white hover:bg-opacity-80"
         style="background: linear-gradient(to left, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);"
       >
-        <span class="text-2xl">&#8594;</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
       </button>
     </div>
     <!-- Indicateurs de pagination -->
@@ -114,10 +118,14 @@ export default {
     scrollNext() {
       if (this.currentIndex + this.visibleItems < this.sliderVideos.length) {
         this.currentIndex += this.visibleItems;
-      } else {
-        this.currentIndex = this.sliderVideos.length - this.visibleItems;
       }
-    },
+/*************  ✨ Codeium Command ⭐  *************/
+/**
+ * Scrolls the carousel to the previous set of visible items.
+ * Decreases the currentIndex by the number of visible items,
+ * ensuring it does not go below zero.
+ */
+/******  6791764e-e9fc-4203-97b0-a41860b7c197  *******/    },
     scrollPrev() {
       if (this.currentIndex > 0) {
         this.currentIndex -= this.visibleItems;
@@ -137,10 +145,9 @@ export default {
 
 <style scoped>
 .carousel-container {
-  max-width: 100%;
-  margin: 0 auto;
+  width: 100%;
 }
 .carousel {
-  position: relative;
+  max-width: 100%;
 }
 </style>
