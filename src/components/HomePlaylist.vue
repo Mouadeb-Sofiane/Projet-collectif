@@ -1,177 +1,146 @@
+<template>
+  <div class="carousel-container relative bg-black text-white p-6">
+    <h2 class="text-3xl font-bold text-center my-6">Revivez nos précédentes émissions</h2>
+    <div class="carousel relative overflow-hidden w-screen">
+      <!-- Liste des vignettes -->
+      <div
+        class="flex transition-transform duration-700 ease-in-out"
+        :style="{ transform: `translateX(-${currentIndex * itemWidth}px)` }"
+        ref="carouselTrack"
+      >
+        <div
+          v-for="(video, index) in sliderVideos"
+          :key="video.id"
+          class="carousel-item flex-shrink-0 w-full sm:w-1/2 lg:w-1/4 px-2"
+        >
+          <div class="bg-gray-800 rounded-lg shadow-md">
+            <div class="relative overflow-hidden">
+              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+                <img
+                  :src="video.customThumbnail || video.defaultThumbnail"
+                  alt="Vignette de la vidéo"
+                  class="w-full h-40 object-cover rounded-t-lg"
+                  style="transform: translateX(10%);"
+                />
+              </router-link>
+              <span class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                {{ formatDuration(video.duration) }}
+              </span>
+            </div>
+            <div class="p-4">
+              <h3 class="text-sm font-bold truncate">{{ video.title }}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Flèches navigation -->
+      <button
+        v-if="currentIndex > 0"
+        @click="scrollPrev"
+        class="absolute top-1/2 left-0 transform -translate-y-1/2 w-12 h-full flex items-center justify-center text-white"
+        style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);"
+      >
+        <span class="text-2xl">&#8592;</span>
+      </button>
+      <button
+        v-if="currentIndex + visibleItems < sliderVideos.length"
+        @click="scrollNext"
+        class="absolute top-1/2 right-0 transform -translate-y-1/2 w-12 h-full flex items-center justify-center text-white"
+        style="background: linear-gradient(to left, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);"
+      >
+        <span class="text-2xl">&#8594;</span>
+      </button>
+    </div>
+    <!-- Indicateurs de pagination -->
+    <div class="flex justify-center mt-4">
+      <span
+        v-for="(video, index) in Math.ceil(sliderVideos.length / visibleItems)"
+        :key="index"
+        @click="goToSlide(index)"
+        :class="['w-3 h-3 mx-1 rounded-full cursor-pointer', currentIndex === index * visibleItems ? 'bg-white' : 'bg-gray-500']"
+      ></span>
+    </div>
+  </div>
+</template>
+
 <script>
 import PocketBase from 'pocketbase';
-import { fetchYouTubePlaylists, fetchYouTubeVideos, fetchLiveStream } from '@/services/YoutubeServices';
 
 export default {
   data() {
     return {
-      playlists: [],
-      playlistsVideos: {},
-      allVideos: [],
-      liveVideo: null,
       sliderVideos: [],
-      currentVideoIndex: 0,
-      sliderInterval: null,
-      progressInterval: null,
-      progressPercentage: 0,
-      isLoading: true,
-      errorMessage: '',
-      cache: {
-        playlists: null,
-        videos: null,
-        lastYouTubeFetch: 0,
-      },
+      currentIndex: 0,
+      itemWidth: 0,
+      visibleItems: 4, // Par défaut, pour desktop
     };
   },
-
-  async mounted() {
-    this.isLoading = true;
+  async created() {
     try {
       const pb = new PocketBase('http://127.0.0.1:8090');
-
-      // Chargement des playlists et vidéos depuis PocketBase
-      await this.loadCachedData(pb);
-
-      // Mise à jour des données depuis l'API YouTube
-      await this.updateYouTubeData();
-
-      // Chargement de la vidéo en direct
-      this.liveVideo = await fetchLiveStream();
-
-      // Préparation des vidéos pour le slider
-      this.prepareSliderVideos();
-
-      // Capture des miniatures personnalisées pour les vidéos locales
-      await this.generateCustomThumbnails();
-
-      // Démarrage du slider
-      this.startSlider();
+      const videos = await pb.collection('videos').getFullList({
+        sort: '-created',
+      });
+      this.sliderVideos = videos.map((video) => ({
+        id: video.id,
+        title: video.title,
+        duration: video.duration,
+        defaultThumbnail: video.thumbnail_url,
+        customThumbnail: video.custom_thumbnail || null,
+      }));
     } catch (error) {
-      console.error('Erreur lors du chargement des données :', error);
-      this.errorMessage = 'Une erreur est survenue lors du chargement des données.';
-    } finally {
-      this.isLoading = false;
+      console.error('Erreur lors de la récupération des vidéos :', error);
     }
   },
-
+  mounted() {
+    this.calculateVisibleItems();
+    window.addEventListener('resize', this.calculateVisibleItems);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.calculateVisibleItems);
+  },
   methods: {
-    async loadCachedData(pb) {
-      if (!this.cache.playlists || !this.cache.videos) {
-        this.cache.playlists = await pb.collection('playlists').getFullList();
-        this.cache.videos = await pb.collection('videos').getFullList(200);
+    calculateVisibleItems() {
+      const width = window.innerWidth;
+      if (width < 640) {
+        this.visibleItems = 1;
+      } else if (width < 1024) {
+        this.visibleItems = 2;
+      } else {
+        this.visibleItems = 4;
       }
-      this.playlists = [...this.cache.playlists];
-      this.allVideos = [...this.cache.videos];
-
-      for (const playlist of this.playlists) {
-        const videos = await pb.collection('videos').getFullList(200, {
-          filter: `id_playlists~"${playlist.id}"`,
-        });
-        this.playlistsVideos[playlist.id] = videos;
+      this.itemWidth = this.$refs.carouselTrack.clientWidth / this.visibleItems;
+    },
+    scrollNext() {
+      if (this.currentIndex + this.visibleItems < this.sliderVideos.length) {
+        this.currentIndex += this.visibleItems;
+      } else {
+        this.currentIndex = this.sliderVideos.length - this.visibleItems;
       }
     },
-
-    async updateYouTubeData() {
-      const now = Date.now();
-      const fifteenMinutes = 15 * 60 * 1000;
-
-      if (now - this.cache.lastYouTubeFetch > fifteenMinutes) {
-        const [ytPlaylists, ytVideos] = await Promise.all([
-          fetchYouTubePlaylists(),
-          fetchYouTubeVideos(),
-        ]);
-        this.cache.lastYouTubeFetch = now;
-
-        this.playlists = [...this.playlists, ...ytPlaylists];
-        this.playlistsVideos['yt'] = ytVideos;
+    scrollPrev() {
+      if (this.currentIndex > 0) {
+        this.currentIndex -= this.visibleItems;
       }
     },
-
-    async generateCustomThumbnails() {
-      for (const video of this.allVideos) {
-        try {
-          video.customThumbnail = await this.captureThumbnail(video.videoUrl);
-        } catch (error) {
-          console.error(`Erreur lors de la capture de la miniature pour ${video.title} :`, error);
-        }
-      }
+    goToSlide(index) {
+      this.currentIndex = index * this.visibleItems;
     },
-
-    captureThumbnail(videoUrl) {
-      const videoElement = document.createElement('video');
-      videoElement.src = videoUrl;
-      videoElement.crossOrigin = 'anonymous'; // Important pour les vidéos externes
-      videoElement.currentTime = 1; // Capturer à 1 seconde
-
-      return new Promise((resolve, reject) => {
-        videoElement.onloadedmetadata = () => {
-          videoElement.currentTime = 1;
-        };
-
-        videoElement.onseeked = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', 0.8));
-          } catch (error) {
-            reject(error);
-          }
-        };
-
-        videoElement.onerror = (e) => reject(e);
-      });
-    },
-
-    beforeUnmount() {
-      if (this.sliderInterval) {
-        clearInterval(this.sliderInterval);
-      }
-      if (this.progressInterval) {
-        clearInterval(this.progressInterval);
-      }
+    formatDuration(duration) {
+      const minutes = Math.floor(duration / 60);
+      const seconds = duration % 60;
+      return `${minutes}m${seconds < 10 ? '0' : ''}${seconds}`;
     },
   },
 };
 </script>
-<template>
-    <!-- Section Playlists et vidéos PocketBase -->
-    <div v-if="playlists.length && !isLoading" class="playlists text-white bg-black p-6">
-      <h2 class="text-3xl font-bold text-center my-6">Mes Playlists</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="playlist in playlists"
-          :key="playlist.id"
-          class="playlist bg-gray-800 p-4 rounded-lg shadow-md"
-        >
-        
-          <h3 class="text-lg font-bold text-center">{{ playlist.title }}</h3>
-          <div v-if="playlistsVideos[playlist.id]?.length">
-            <div v-for="video in playlistsVideos[playlist.id]" :key="video.id" class="video-item">
-              <h3 class="text-center mb-2">{{ video.title }}</h3>
-              
-              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-              <video 
-                v-if="video.VideoTele"
-                :src="`http://127.0.0.1:8090/api/files/videos/${video.id}/${video.VideoTele}`"
-                class="w-full h-full object-cover"
-                loop
-                playsinline>
-              </video>
-              </router-link>
-              
-              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-                <button class="w-full mt-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-                  Regarder
-                </button>
-              </router-link>
-            </div>
-          </div>
-          <p v-else class="text-center text-gray-400">Aucune vidéo disponible.</p>
-        </div>
-      </div>
-    </div>
-  </template>
-  
+
+<style scoped>
+.carousel-container {
+  max-width: 100%;
+  margin: 0 auto;
+}
+.carousel {
+  position: relative;
+}
+</style>
