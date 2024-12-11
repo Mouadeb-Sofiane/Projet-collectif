@@ -1,3 +1,74 @@
+<script>
+import PocketBase from 'pocketbase';
+
+export default {
+  data() {
+    return {
+      sliderVideos: [],
+      currentIndex: 0,
+      itemWidth: 0,
+      visibleItems: 4, // Par défaut, pour desktop
+    };
+  },
+  async created() {
+    try {
+      const pb = new PocketBase('http://127.0.0.1:8090');
+      const videos = await pb.collection('videos').getFullList({
+        sort: '-created',
+      });
+      this.sliderVideos = videos.map((video) => ({
+        id: video.id,
+        title: video.title, 
+        videoId: video.videoId,
+
+        duration: video.duration,
+        defaultThumbnail: video.thumbnail_url,
+        customThumbnail: video.custom_thumbnail || null,
+      }));
+    } catch (error) {
+      console.error('Erreur lors de la récupération des vidéos :', error);
+    }
+  },
+  mounted() {
+    this.calculateVisibleItems();
+    window.addEventListener('resize', this.calculateVisibleItems);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.calculateVisibleItems);
+  },
+  methods: {
+    calculateVisibleItems() {
+      const width = window.innerWidth;
+      if (width < 640) {
+        this.visibleItems = 1;
+      } else if (width < 1024) {
+        this.visibleItems = 2;
+      } else {
+        this.visibleItems = 4;
+      }
+      this.itemWidth = this.$refs.carouselTrack.clientWidth / this.visibleItems;
+    },
+    scrollNext() {
+      if (this.currentIndex + this.visibleItems < this.sliderVideos.length) {
+        this.currentIndex += this.visibleItems;
+      }
+   },
+    scrollPrev() {
+      if (this.currentIndex > 0) {
+        this.currentIndex -= this.visibleItems;
+      }
+    },
+    goToSlide(index) {
+      this.currentIndex = index * this.visibleItems;
+    },
+    formatDuration(duration) {
+      const minutes = Math.floor(duration / 60);
+      const seconds = duration % 60;
+      return `${minutes}m${seconds < 10 ? '0' : ''}${seconds}`;
+    },
+  },
+};
+</script>
 <template>
   <div class="carousel-container relative bg-black text-white p-6 w-full">
     <h2 class="text-3xl font-bold text-center my-6">Revivez nos précédentes émissions</h2>
@@ -15,10 +86,10 @@
           :style="{ width: `${itemWidth}px` }"
         >
           <div class=" rounded-lg shadow-md">
-            <div class="relative">
+            <div class="relative"> {{ video }}
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
                 <img
-                  :src="video.customThumbnail || video.defaultThumbnail"
+                  :src="`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`"
                   alt="Vignette de la vidéo"
                   class="w-full h-40 object-cover rounded-t-lg"
                 />
@@ -65,84 +136,8 @@
       ></span>
     </div>
   </div>
+  
 </template>
-
-<script>
-import PocketBase from 'pocketbase';
-
-export default {
-  data() {
-    return {
-      sliderVideos: [],
-      currentIndex: 0,
-      itemWidth: 0,
-      visibleItems: 4, // Par défaut, pour desktop
-    };
-  },
-  async created() {
-    try {
-      const pb = new PocketBase('http://127.0.0.1:8090');
-      const videos = await pb.collection('videos').getFullList({
-        sort: '-created',
-      });
-      this.sliderVideos = videos.map((video) => ({
-        id: video.id,
-        title: video.title,
-        duration: video.duration,
-        defaultThumbnail: video.thumbnail_url,
-        customThumbnail: video.custom_thumbnail || null,
-      }));
-    } catch (error) {
-      console.error('Erreur lors de la récupération des vidéos :', error);
-    }
-  },
-  mounted() {
-    this.calculateVisibleItems();
-    window.addEventListener('resize', this.calculateVisibleItems);
-  },
-  beforeUnmount() {
-    window.removeEventListener('resize', this.calculateVisibleItems);
-  },
-  methods: {
-    calculateVisibleItems() {
-      const width = window.innerWidth;
-      if (width < 640) {
-        this.visibleItems = 1;
-      } else if (width < 1024) {
-        this.visibleItems = 2;
-      } else {
-        this.visibleItems = 4;
-      }
-      this.itemWidth = this.$refs.carouselTrack.clientWidth / this.visibleItems;
-    },
-    scrollNext() {
-      if (this.currentIndex + this.visibleItems < this.sliderVideos.length) {
-        this.currentIndex += this.visibleItems;
-      }
-/*************  ✨ Codeium Command ⭐  *************/
-/**
- * Scrolls the carousel to the previous set of visible items.
- * Decreases the currentIndex by the number of visible items,
- * ensuring it does not go below zero.
- */
-/******  6791764e-e9fc-4203-97b0-a41860b7c197  *******/    },
-    scrollPrev() {
-      if (this.currentIndex > 0) {
-        this.currentIndex -= this.visibleItems;
-      }
-    },
-    goToSlide(index) {
-      this.currentIndex = index * this.visibleItems;
-    },
-    formatDuration(duration) {
-      const minutes = Math.floor(duration / 60);
-      const seconds = duration % 60;
-      return `${minutes}m${seconds < 10 ? '0' : ''}${seconds}`;
-    },
-  },
-};
-</script>
-
 <style scoped>
 .carousel-container {
   width: 100%;
@@ -151,3 +146,6 @@ export default {
   max-width: 100%;
 }
 </style>
+
+                
+              
