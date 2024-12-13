@@ -18,12 +18,37 @@ export default {
       const pb = new PocketBase('http://127.0.0.1:8090');
 
       // Récupération des playlists
-      this.playlists = await pb.collection('playlists').getFullList();
+      const playlists = await pb.collection('playlists').getFullList();
 
-      // Initialisation des vidéos par playlist
-      this.playlists.forEach((playlist) => {
-        this.playlistsVideos[playlist.id] = [];
-      });
+      // Pour chaque playlist, récupérer la première vidéo associée et définir une miniature
+      const updatedPlaylists = await Promise.all(
+        playlists.map(async (playlist) => {
+          try {
+            // Récupérer uniquement la première vidéo associée à la playlist
+            const videos = await pb.collection('videos').getFullList(1, {
+              filter: `id_playlists~"${playlist.id}"`,
+            });
+
+            // Associer une vignette de vidéo si disponible
+            if (videos.length > 0) {
+              const video = videos[0]; // Utiliser la première vidéo associée
+              if (video.videoId) {
+                playlist.thumbnailurl = `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`; // Créer la vignette YouTube
+              } else {
+                playlist.thumbnailurl = null; // Pas de vignette si vidéo sans videoId
+              }
+            } else {
+              playlist.thumbnailurl = null; // Pas de vidéo associée, donc pas de vignette
+            }
+          } catch (error) {
+            console.error(`Erreur lors du chargement des vidéos pour la playlist ${playlist.id}:`, error);
+            playlist.thumbnailurl = null; // Pas de vignette en cas d'erreur
+          }
+          return playlist;
+        })
+      );
+
+      this.playlists = updatedPlaylists;
     } catch (error) {
       console.error('Erreur lors du chargement des données :', error);
       this.errorMessage = 'Impossible de charger les playlists.';
@@ -36,16 +61,18 @@ export default {
     async selectPlaylist(playlist) {
       this.selectedPlaylist = playlist;
 
-      if (!this.playlistsVideos[playlist.id].length) {
+      // Si les vidéos ne sont pas encore chargées pour la playlist, on les charge
+      if (!this.playlistsVideos[playlist.id]?.length) {
         try {
           const pb = new PocketBase('http://127.0.0.1:8090');
           const videos = await pb.collection('videos').getFullList(200, {
             filter: `id_playlists~"${playlist.id}"`,
           });
 
+          // On stocke les vidéos de cette playlist
           this.playlistsVideos[playlist.id] = videos;
         } catch (error) {
-          console.error('Erreur lors du chargement des vidéos :', error);
+          console.error('Erreur lors du chargement des vidéos pour la playlist:', error);
           this.errorMessage = `Impossible de charger les vidéos pour la playlist ${playlist.title}.`;
         }
       }
@@ -57,7 +84,8 @@ export default {
   },
 };
 </script>
-<template> 
+
+<template>
   <div>
     <!-- Playlists -->
     <div v-if="playlists.length && !isLoading" class="playlists p-6">
@@ -70,6 +98,13 @@ export default {
           @click="selectPlaylist(playlist)"
         >
           <h3 class="text-lg font-bold text-center">{{ playlist.title }}</h3>
+          <img
+            v-if="playlist.thumbnailurl"
+            :src="playlist.thumbnailurl"
+            alt="Vignette de la playlist"
+            class="w-full h-40 object-cover rounded-t-lg"
+          />
+          <p v-else class="text-center text-gray-400">Aucune vignette disponible</p>
         </div>
       </div>
     </div>
@@ -102,12 +137,6 @@ export default {
               :key="video.id"
               class="video-item bg-gray-800 p-4 rounded-lg shadow-md"
             >
-              <img
-                v-if="video.thumbnail"
-                :src="video.thumbnail"
-                class="w-full h-48 object-cover rounded-lg"
-                alt="Thumbnail"
-              />
               <h4 class="text-center mt-2">{{ video.title }}</h4>
               <video
                 :src="`http://127.0.0.1:8090/api/files/videos/${video.id}/${video.VideoTele}`"
