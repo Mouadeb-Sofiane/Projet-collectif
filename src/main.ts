@@ -20,6 +20,7 @@ import Reportages from './views/Reportages.vue';
 import Emissions from './views/Emissions.vue';
 import APropos from './views/APropos.vue';
 import SingleLive from './views/SingleLive.vue';
+import HomePocketbaseCopy from './views/HomePocketbase_copy.vue';
 
 // Définir les routesdv
 const routes = [
@@ -38,7 +39,8 @@ const routes = [
   { path: '/emissions', component: Emissions },
   { path: '/apropos', component: APropos },
   { path: '/homepocket', component:Home },
-  { path: '/singlelive', component: SingleLive, name: 'singleLive',  }
+  { path: '/singlelive', component: SingleLive, name: 'singleLive'},
+  { path: '/homepocketbasecopy', component: HomePocketbaseCopy, name: 'homepocketbase_copy' },
 ];
 
 const router = createRouter({
