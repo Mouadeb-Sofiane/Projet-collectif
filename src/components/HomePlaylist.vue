@@ -20,7 +20,7 @@ export default {
         id: video.id,
         title: video.title, 
         videoId: video.videoId,
-
+        duree: video.duree,
         duration: video.duration,
         defaultThumbnail: video.thumbnail_url,
         customThumbnail: video.custom_thumbnail || null,
@@ -86,7 +86,7 @@ export default {
           :style="{ width: `${itemWidth}px` }"
         >
           <div class=" rounded-lg shadow-md">
-            <div class="relative"> {{ video }}
+            <div class="relative">
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
                 <img
                   :src="`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`"
@@ -94,10 +94,18 @@ export default {
                   class="w-full h-40 object-cover rounded-t-lg"
                 />
               </router-link>
-              <span class="bg-orange-500 absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                {{ formatDuration(video.duration) }}
-              </span>
+              
+              <div>
+                <span v-if="video.duration" class="bg-orange-500 absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                  {{ formatDuration(video.duration) }}
+                </span>
+                <!-- Affiche un message alternatif si aucune durée n'est définie -->
+                <span v-else class="bg-orange-500 absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                  {{ video.duree}}
+                </span>
+              </div>
             </div>
+
             <div class="p-4">
               <h3 class="text-sm font-bold truncate">{{ video.title }}</h3>
             </div>

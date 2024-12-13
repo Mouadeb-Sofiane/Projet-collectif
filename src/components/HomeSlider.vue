@@ -275,7 +275,15 @@ export default {
               </RouterLink>
 
               <RouterLink
-                v-if="video.type === 'local'"
+              v-if="video.type === 'youtube'"
+                :to="{ name: 'singlelive', params: { id: liveVideo.id } }"
+                class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all ml-4"
+              >
+                PLUS D'INFO
+              </RouterLink>
+              
+              <RouterLink
+                v-else="video.type === 'local'"
                 :to="{ name: 'singleVideoPocket', params: { id: video.data.id } }"
                 class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all ml-8"
               >

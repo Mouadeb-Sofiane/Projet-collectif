@@ -19,6 +19,7 @@ import Rediffusions from './views/Rediffusions.vue';
 import Reportages from './views/Reportages.vue';
 import Emissions from './views/Emissions.vue';
 import APropos from './views/APropos.vue';
+import SingleLive from './views/SingleLive.vue';
 
 // Définir les routesdv
 const routes = [
@@ -36,7 +37,9 @@ const routes = [
   { path: '/reportages', component: Reportages },
   { path: '/emissions', component: Emissions },
   { path: '/apropos', component: APropos },
-  { path: '/homepocket', component:Home }];
+  { path: '/homepocket', component:Home },
+  { path: '/singlelive', component: SingleLive, name: 'singleLive',  }
+];
 
 const router = createRouter({
   history: createWebHistory(),
