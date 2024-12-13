@@ -80,17 +80,23 @@ export default {
   },
 
   methods: {
-    prepareSliderVideos() {
-      this.sliderVideos = [];
-      if (this.liveVideo) {
-        this.sliderVideos.push({ type: 'youtube', data: this.liveVideo });
-      }
+  prepareSliderVideos() {
+    // Réinitialiser le slider
+    this.sliderVideos = [];
+    
+    // Prioriser la vidéo en direct
+    if (this.liveVideo) {
+      this.sliderVideos.push({ type: 'youtube', data: this.liveVideo });
+    } else {
+      // Si aucune vidéo en direct, utiliser des vidéos locales
       const shuffledVideos = this.shuffleArray(this.allVideos);
       const additionalVideos = shuffledVideos.slice(0, 4);
       this.sliderVideos.push(
         ...additionalVideos.map((video) => ({ type: 'local', data: video }))
       );
-    },
+    }
+  },
+
 
     startSlider() {
       if (this.sliderVideos.length > 0) {
@@ -217,7 +223,7 @@ export default {
             loop
             playsinline
           ></video>
-
+          
           <!-- Dégradés -->
           <div 
             class="absolute inset-x-0 bottom-0"
@@ -275,15 +281,7 @@ export default {
               </RouterLink>
 
               <RouterLink
-              v-if="video.type === 'youtube'"
-                :to="{ name: 'singlelive', params: { id: liveVideo.id } }"
-                class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all ml-4"
-              >
-                PLUS D'INFO
-              </RouterLink>
-              
-              <RouterLink
-                v-else="video.type === 'local'"
+                v-if="video.type === 'local'"
                 :to="{ name: 'singleVideoPocket', params: { id: video.data.id } }"
                 class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all ml-8"
               >
