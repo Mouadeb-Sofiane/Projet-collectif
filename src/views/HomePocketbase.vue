@@ -7,7 +7,7 @@ import HomeSlider from '@/components/HomeSlider.vue';
 
 <template>
     <div class="text-white bg-black">
-    <HomeSlider />
+        <HomeSlider />
     <HomePlaylist />
 </div>
 </template>
