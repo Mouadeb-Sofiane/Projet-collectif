@@ -70,7 +70,7 @@ export default {
 };
 </script>
 <template>
-  <div class="carousel-container relative bg-black text-white p-6 w-full">
+  <div class="carousel-container relative bg-black mt-14 text-white p-6 w-full">
     <h2 class="text-3xl font-bold text-center my-6">Revivez nos précédentes émissions</h2>
     <div class="carousel relative overflow-hidden w-full">
       <!-- Liste des vignettes -->
