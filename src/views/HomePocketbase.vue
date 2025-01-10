@@ -8,4 +8,10 @@ import HomeSlider from '@/components/HomeSlider.vue';
 <template>
     <HomeSlider />
     <HomePlaylist />
+
+    <HomeALaUne />
+    <HomePlaylist />
+    <HomePlaylist />
+</div>
+
 </template>

@@ -21,6 +21,7 @@ export default {
         title: video.title, 
         videoId: video.videoId,
         duree: video.duree,
+        description: video.description,
         duration: video.duration,
         defaultThumbnail: video.thumbnail_url,
         customThumbnail: video.custom_thumbnail || null,
@@ -70,8 +71,11 @@ export default {
 };
 </script>
 <template>
-  <div class="carousel-container relative bg-black mt-14 text-white p-6 w-full">
-    <h2 class="text-3xl font-bold text-center my-6">Revivez nos précédentes émissions</h2>
+  <div class="carousel-container relative bg-thirdColor mt-14 text-white p-6 w-full px-12">
+    <h2 class="text-2xl md:text-3xl font-bold my-6">Revivez nos précédentes émissions</h2>
+    <div class="relative mb-8 mr-12">
+      <div class="h-1.5 w-[75%] md:w-[50%] lg:w-[25%] bg-primaryColor"></div>
+    </div>
     <div class="carousel relative overflow-hidden w-full">
       <!-- Liste des vignettes -->
       <div
@@ -85,29 +89,28 @@ export default {
           class="carousel-item flex-shrink-0 w-full px-2"
           :style="{ width: `${itemWidth}px` }"
         >
-          <div class=" rounded-lg shadow-md">
+          <div class="rounded-lg shadow-md">
             <div class="relative">
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
                 <img
                   :src="`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`"
                   alt="Vignette de la vidéo"
-                  class="w-full h-40 object-cover rounded-t-lg"
+                  class="w-30% h-full object-cover rounded-t-lg"
                 />
               </router-link>
-              
               <div>
-                <span v-if="video.duration" class="bg-orange-500 absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                <span v-if="video.duration" class="bg-primaryColor absolute bottom-2 right-2 bg-black bg-opacity-75 text-black text-xs px-2 py-1 rounded">
                   {{ formatDuration(video.duration) }}
                 </span>
-                <!-- Affiche un message alternatif si aucune durée n'est définie -->
-                <span v-else class="bg-orange-500 absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                  {{ video.duree}}
+                <span v-else class="bg-primaryColor absolute bottom-2 right-2 bg-black bg-opacity-75 text-black font-semibold text-xs px-2 py-1 rounded">
+                  {{ video.duree }}
                 </span>
               </div>
             </div>
-
             <div class="p-4">
-              <h3 class="text-sm font-bold truncate">{{ video.title }}</h3>
+              <h3 class="md:text-xl font-bold truncate">{{ video.title }}</h3>
+              <h3 class="mt-1 font-light text-sm truncate line-clamp-2">{{ video.description }}</h3>
+              
             </div>
           </div>
         </div>
@@ -116,21 +119,38 @@ export default {
       <button
         v-if="currentIndex > 0"
         @click="scrollPrev"
-        class="absolute top-1/2 left-2 transform -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center text-white hover:bg-opacity-80"
+        class="absolute top-1/2 left-[-0.3rem] transform -translate-y-1/2 w-12 h-[18rem] flex items-center justify-center text-white hover:bg-opacity-80"
         style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" class="transform rotate-180" xmlns="http://www.w3.org/2000/svg">
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M14.4205 15.4797L2.88369 27.8639L0 24.7684L10.0949 13.932L0 3.09551L2.88369 0L14.4205 12.3842C14.8028 12.7947 15.0176 13.3515 15.0176 13.932C15.0176 14.5125 14.8028 15.0692 14.4205 15.4797Z"
+            fill="white"
+          />
         </svg>
       </button>
       <button
         v-if="currentIndex + visibleItems < sliderVideos.length"
         @click="scrollNext"
-        class="absolute top-1/2 right-2 transform -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center text-white hover:bg-opacity-80"
+        class="absolute top-1/2 right-[-0.3rem] transform -translate-y-1/2 w-12 h-[18rem] flex items-center justify-center text-white hover:bg-opacity-80"
         style="background: linear-gradient(to left, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        <svg
+          width="16"
+          height="28"
+          viewBox="0 0 16 28"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M14.4205 15.4797L2.88369 27.8639L0 24.7684L10.0949 13.932L0 3.09551L2.88369 0L14.4205 12.3842C14.8028 12.7947 15.0176 13.3515 15.0176 13.932C15.0176 14.5125 14.8028 15.0692 14.4205 15.4797Z"
+            fill="white"
+          />
         </svg>
       </button>
     </div>
@@ -144,8 +164,8 @@ export default {
       ></span>
     </div>
   </div>
-  
 </template>
+
 <style scoped>
 .carousel-container {
   width: 100%;

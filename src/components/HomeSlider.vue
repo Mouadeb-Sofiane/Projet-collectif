@@ -69,7 +69,7 @@ export default {
       this.status = this.liveVideo ? 'EN DIRECT' : 'ÉMISSION';
 
       // Préparation et démarrage du slider
-      this.prepareSliderVideos();
+      await this.prepareSliderVideos();
       this.startSlider();
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
@@ -80,25 +80,40 @@ export default {
   },
 
   methods: {
-  prepareSliderVideos() {
-    // Réinitialiser le slider
-    this.sliderVideos = [];
-    
-    // Prioriser la vidéo en direct
-    if (this.liveVideo) {
-      this.sliderVideos.push({ type: 'youtube', data: this.liveVideo });
-    } else {
-      // Si aucune vidéo en direct, utiliser des vidéos locales
-      const shuffledVideos = this.shuffleArray(this.allVideos);
-      const additionalVideos = shuffledVideos.slice(0, 4);
-      this.sliderVideos.push(
-        ...additionalVideos.map((video) => ({ type: 'local', data: video }))
-      );
-    }
-  },
+    prepareSliderVideos() {
+      // Réinitialiser le slider et l'index
+      this.sliderVideos = [];
+      this.currentVideoIndex = 0;
+      
+      // Prioriser la vidéo en direct
+      if (this.liveVideo) {
+        this.sliderVideos.push({ type: 'youtube', data: this.liveVideo });
+      }
+      
+      // Ajouter les vidéos locales (maximum 4)
+      const localVideos = [...this.allVideos]
+        .slice(0, 4)
+        .map(video => ({ type: 'local', data: video }));
+      
+      this.sliderVideos = [...this.sliderVideos, ...localVideos];
 
+      // S'assurer qu'il y a exactement 4 vidéos
+      while (this.sliderVideos.length < 4) {
+        const remainingVideos = this.allVideos
+          .slice(this.sliderVideos.length)
+          .map(video => ({ type: 'local', data: video }));
+        this.sliderVideos.push(...remainingVideos);
+      }
+
+      // Limiter à exactement 4 vidéos
+      this.sliderVideos = this.sliderVideos.slice(0, 4);
+    },
 
     startSlider() {
+      // Nettoyer les intervalles existants
+      if (this.sliderInterval) clearInterval(this.sliderInterval);
+      if (this.progressInterval) clearInterval(this.progressInterval);
+
       if (this.sliderVideos.length > 0) {
         this.startProgressBar();
         this.sliderInterval = setInterval(() => {
@@ -124,11 +139,8 @@ export default {
       }
 
       this.progressInterval = setInterval(() => {
-        this.progressPercentage += step;
-
-        if (this.progressPercentage >= 100) {
-          clearInterval(this.progressInterval);
-          this.nextSlide();
+        if (this.progressPercentage < 100) {
+          this.progressPercentage += step;
         }
       }, interval);
     },
@@ -137,40 +149,24 @@ export default {
       if (this.progressInterval) {
         clearInterval(this.progressInterval);
       }
+      this.progressPercentage = 0;
       this.startProgressBar();
     },
 
-    shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    },
-
     goToSlide(index) {
-      this.currentVideoIndex = index;
-      this.resetProgressBar();
+      if (index !== this.currentVideoIndex) {
+        this.currentVideoIndex = index;
+        this.resetProgressBar();
+        
+        // Redémarrer le slider automatique
+        if (this.sliderInterval) {
+          clearInterval(this.sliderInterval);
+          this.startSlider();
+        }
+      }
     },
 
-    captureThumbnail(videoUrl) {
-      const videoElement = document.createElement('video');
-      videoElement.src = videoUrl;
-      videoElement.currentTime = 1;
-
-      return new Promise((resolve) => {
-        videoElement.onseeked = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = videoElement.videoWidth;
-          canvas.height = videoElement.videoHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL());
-        };
-      });
-    },
-
-    beforeUnmount() {
+    beforeDestroy() {
       if (this.sliderInterval) {
         clearInterval(this.sliderInterval);
       }
@@ -181,7 +177,6 @@ export default {
   },
 };
 </script>
-
 
 <template>
   <div class="bg-black text-white relative">
