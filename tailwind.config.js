@@ -7,7 +7,11 @@ module.exports = {
     extend: {
       colors: {
         oranges: "#FFA559",
-        rouges: "#FF0000"
+        rouges: "#FF0000",
+        primaryColor: 'var(--primary-color)',
+        secondaryColor: 'var(--secondary-color)',
+        thirdColor: 'var(--third-color)',
+      
       },
     },
   },
