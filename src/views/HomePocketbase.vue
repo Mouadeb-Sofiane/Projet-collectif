@@ -12,6 +12,6 @@ import HomeSlider from '@/components/HomeSlider.vue';
     <HomeALaUne />
     <HomePlaylist />
     <HomePlaylist />
-</div>
+
 
 </template>
