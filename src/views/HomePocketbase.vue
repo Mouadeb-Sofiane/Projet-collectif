@@ -6,11 +6,12 @@ import HomeSlider from '@/components/HomeSlider.vue';
 </script>
 
 <template>
-    <div class="text-white bg-black">
-        <HomeSlider />
+    <HomeSlider />
     <HomePlaylist />
+
     <HomeALaUne />
     <HomePlaylist />
     <HomePlaylist />
 </div>
+
 </template>
