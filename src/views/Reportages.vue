@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import HomePlaylist from '@/components/HomePlaylist.vue';
-import HomeSlider from '@/components/HomeSlider.vue';
-
-
+  import ModalReportage from '@/components/ModalReportage.vue'; 
+  import BeginReportage from '@/components/BeginReportage.vue';
+  import HomePlaylist from '@/components/HomePlaylist.vue';
 </script>
 
 <template>
-    <h1>Reportages</h1>
-
+  <div class="bg-thirdColor text-secondaryColor">
+      <BeginReportage />
+      <ModalReportage />
+      <HomePlaylist />
+      <HomePlaylist />
+      
+    </div>
 </template>

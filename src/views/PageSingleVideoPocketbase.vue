@@ -1,9 +1,14 @@
 <script>
 import PocketBase from 'pocketbase';
+import HomePlaylist from '@/components/HomePlaylist.vue';
 
 export default {
+  components: {
+    HomePlaylist
+  },
   data() {
     return {
+      activeTab: 'details',
       video: null, // Détails de la vidéo
       isLoading: true, // Indicateur de chargement
       errorMessage: '', // Message d'erreur
@@ -113,23 +118,83 @@ export default {
   </div>
 </div>
 
-  <div>
-    <h3>Description</h3>
-      <p>{{ video?.description }}</p>
-      <button>Partager</button>
-    <h3>Casting</h3>
-      <p>{{ video?.casting }}</p> 
-    <h3>Réaliser par</h3>
-      <p>{{ video?.realisation }}</p>
 
-    <p v-if="video?.date" class="text-sm text-gray-500 mt-4 text-center">
-      Date de publication : {{ new Date(video.date).toLocaleDateString('fr-FR') }}
-    </p>
-    <p v-else class="text-sm text-gray-500 mt-4 text-center">
-      Date de publication : Non disponible
-    </p>
-    <p>Durée : {{ video?.duree !== null && video?.duree !== undefined ? video.duree : 'Non disponible' }}</p>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <div class="border-b border-gray-700">
+        <nav class="flex space-x-8" aria-label="Tabs">
+          <button 
+            @click="activeTab = 'details'"
+            :class="[
+              activeTab === 'details' 
+                ? 'border-orange-500 text-orange-500' 
+                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300',
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
+            ]"
+          >
+            Détails
+          </button>
+          <button 
+            @click="activeTab = 'suggestions'"
+            :class="[
+              activeTab === 'suggestions' 
+                ? 'border-orange-500 text-orange-500' 
+                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300',
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
+            ]"
+          >
+            Suggestions
+          </button>
+        </nav>
+      </div>
+
+      <!-- Content Section -->
+      <div class="py-8">
+        <!-- Details Content -->
+        <div v-if="activeTab === 'details'" class="lg:grid lg:grid-cols-2 lg:gap-12">
+          <!-- Left Column - Description -->
+          <div class="max-w-3xl mb-8 lg:mb-0">
+            <p class="text-gray-300 text-base leading-relaxed">
+              {{ video?.description }}
+            </p>
+          </div>
+
+          <!-- Right Column - Additional Information -->
+          <div class="space-y-8">
+            <!-- Casting Section -->
+            <div>
+              <h3 class="text-lg font-medium text-gray-300 mb-4">Casting</h3>
+              <p class="text-gray-400">{{ video?.casting }}</p>
+            </div>
+
+            <!-- Réalisé par Section -->
+            <div>
+              <h3 class="text-lg font-medium text-gray-300 mb-4">Réalisé par</h3>
+              <p class="text-gray-400">{{ video?.realisation }}</p>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="flex flex-col gap-4 text-sm text-gray-400">
+              <p v-if="video?.date">
+                Date de publication : {{ new Date(video.date).toLocaleDateString('fr-FR') }}
+              </p>
+              <p v-else>Date de publication : Non disponible</p>
+              <p>Durée : {{ video?.duree !== null && video?.duree !== undefined ? video.duree : 'Non disponible' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggestions Content -->
+        <div v-if="activeTab === 'suggestions'">
+          <HomePlaylist />
+        </div>
+      </div>
+    </div>
+    <HomePlaylist />
   </div>
-</div>
+
+
+  
 
 </template>

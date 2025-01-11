@@ -1,9 +1,15 @@
 <script setup lang="ts">
   import ModalEmission from '@/components/ModalEmission.vue'; 
-  import ModalHome from '@/components/ModalHome.vue';
+  import BeginEmission from '@/components/BeginEmission.vue';
+  import HomePlaylist from '@/components/HomePlaylist.vue';
 </script>
 
 <template>
+  <div class="bg-thirdColor text-secondaryColor">
+      <BeginEmission />
       <ModalEmission />
-      <ModalHome />
+      <HomePlaylist />
+      <HomePlaylist />
+      
+    </div>
 </template>
