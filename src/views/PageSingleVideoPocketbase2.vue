@@ -1,3 +1,67 @@
+<template>
+  <div class="p-6 pt-36 bg-black text-white">
+    <!-- Message de chargement -->
+    <div v-if="isLoading" class="flex justify-center items-center h-screen">
+      <p class="text-lg">Chargement de la vidéo...</p>
+    </div>
+
+    <!-- Message d'erreur -->
+    <div v-if="errorMessage" class="text-center text-red-500 py-6">
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- Contenu principal -->
+    <h1 class="pb-6 uppercase text-3xl md:text-4xl font-bold mb-4">{{ video.title }}</h1>
+    <div v-if="video && !isLoading" class="max-w-7xl mx-auto lg:flex lg:items-start lg:space-x-8">
+      <!-- Vidéo -->
+      <div class="relative flex justify-center mb-8 lg:w-2/3">
+        <video 
+          :src="`http://127.0.0.1:8090/api/files/videos/${video.id}/${video.VideoTele}`" 
+          controls 
+          class="w-full rounded-md shadow-lg">
+        </video>
+      </div>
+
+      <!-- Informations texte -->
+      <div class="md:w-1/3 space-y-8">
+        <!-- Titre de la vidéo -->
+       
+        
+        <!-- Description de la vidéo -->
+        <p class="text-gray-400 mb-6">{{ video.description }}</p>
+
+        <!-- Informations supplémentaires -->
+        <div class="space-y-4">
+          <div>
+            <h3 class="text-xl font-semibold">Description</h3>
+            <p class="text-gray-300">{{ video.description }}</p>
+          </div>
+
+          <div>
+            <h3 class="text-xl font-semibold">Casting</h3>
+            <p class="text-gray-300">{{ video.casting }}</p>
+          </div>
+
+          <div>
+            <h3 class="text-xl font-semibold">Réalisé par</h3>
+            <p class="text-gray-300">{{ video.realisation }}</p>
+          </div>
+
+          <div class="flex justify-between text-sm text-gray-400">
+            <p>Date de publication : {{ video.date ? new Date(video.date).toLocaleDateString('fr-FR') : 'Non disponible' }}</p>
+            <p>Durée : {{ video.duree || 'Non disponible' }}</p>
+          </div>
+        </div>
+
+        <!-- Bouton de partage -->
+        <div class="flex justify-start mt-8">
+          <button class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-md">Partager</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script>
 import PocketBase from 'pocketbase';
 
@@ -26,53 +90,7 @@ export default {
   },
 };
 </script>
-<template>
-  <div class="p-4 bg-black  text-white">
-    <!-- Afficher un message de chargement -->
-    <div v-if="isLoading" class="text-center">
-      <p>Chargement de la vidéo...</p>
-    </div>
 
-    <!-- Afficher un message d'erreur -->
-    <div v-if="errorMessage" class="text-center text-red-500">
-      <p>{{ errorMessage }}</p>
-    </div>
-
-    <!-- Afficher la vidéo uniquement si les données sont disponibles -->
-    <div v-if="video && !isLoading">
-      <h1 class="text-3xl font-bold text-center">{{ video.title }}</h1>
-      <p class="text-center text-gray-500">{{ video.description }}</p>
-      
-      <!-- Afficher la vidéo depuis PocketBase -->
-      <div class="flex justify-center mt-4">
-        <video 
-          :src="`http://127.0.0.1:8090/api/files/videos/${video.id}/${video.VideoTele}`" 
-          controls 
-          class="w-full md:w-2/3 h-64 md:h-96">
-        </video>
-      </div>
-
-      <p class="text-sm text-gray-500 mt-4 text-center">
-        Date de publication : {{ video.date }}
-      </p>
-      <p>Durée : {{ video.duree }}</p>
-    </div>
-    <div>
-    <h3>Description</h3>
-      <p>{{ video?.description }}</p>
-      <button>Partager</button>
-    <h3>Casting</h3>
-      <p>{{ video?.casting }}</p> 
-    <h3>Réaliser par</h3>
-      <p>{{ video?.realisation }}</p>
-
-    <p v-if="video?.date" class="text-sm text-gray-500 mt-4 text-center">
-      Date de publication : {{ new Date(video.date).toLocaleDateString('fr-FR') }}
-    </p>
-    <p v-else class="text-sm text-gray-500 mt-4 text-center">
-      Date de publication : Non disponible
-    </p>
-    <p>Durée : {{ video?.duree !== null && video?.duree !== undefined ? video.duree : 'Non disponible' }}</p>
-  </div>
-</div>
-</template>
+<style>
+/* Ajoutez des styles supplémentaires ici si nécessaire */
+</style>
