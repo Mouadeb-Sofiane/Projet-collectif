@@ -14,5 +14,6 @@ import ModalHome from '@/components/ModalHome.vue';
     <HomePlaylist />
     <HomePlaylist />
 
+
 </div>
 </template>
