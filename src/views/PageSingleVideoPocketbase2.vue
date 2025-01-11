@@ -1,3 +1,33 @@
+<script>
+import HomePlaylist from '@/components/HomePlaylist.vue';
+import PocketBase from 'pocketbase';
+
+export default {
+  data() {
+    return {
+      video: null,
+      isLoading: true,
+      errorMessage: '',
+    };
+  },
+  async mounted() {
+    this.isLoading = true;
+    try {
+      const pb = new PocketBase('http://127.0.0.1:8090'); // Remplacez par votre URL
+      const videoId = this.$route.params.id; // Récupérer l'ID de la vidéo depuis les paramètres d'URL
+
+      // Récupérer les détails de la vidéo depuis PocketBase
+      this.video = await pb.collection('videos').getOne(videoId);
+    } catch (error) {
+      console.error('Erreur lors du chargement de la vidéo :', error);
+      this.errorMessage = 'Impossible de charger la vidéo.';
+    } finally {
+      this.isLoading = false;
+    }
+  },
+};
+</script>
+
 <template>
   <div class="p-6 pt-36 bg-black text-white">
     <!-- Message de chargement -->
@@ -11,8 +41,12 @@
     </div>
 
     <!-- Contenu principal -->
-    <h1 class="pb-6 uppercase text-3xl md:text-4xl font-bold mb-4">{{ video.title }}</h1>
-    <div v-if="video && !isLoading" class="max-w-7xl mx-auto lg:flex lg:items-start lg:space-x-8">
+    <h1 v-if="video?.title" class="pb-6 mx-auto uppercase text-3xl md:text-4xl font-bold mb-4">
+  {{ video.title }}
+</h1>
+
+     
+   <div v-if="video && !isLoading" class="max-w-7xl mx-auto lg:flex lg:items-start lg:space-x-8">
       <!-- Vidéo -->
       <div class="relative flex justify-center mb-8 lg:w-2/3">
         <video 
@@ -25,7 +59,7 @@
       <!-- Informations texte -->
       <div class="md:w-1/3 space-y-8">
         <!-- Titre de la vidéo -->
-       
+      
         
         <!-- Description de la vidéo -->
         <p class="text-gray-400 mb-6">{{ video.description }}</p>
@@ -58,38 +92,14 @@
           <button class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-md">Partager</button>
         </div>
       </div>
+      
     </div>
+    
   </div>
+
 </template>
 
-<script>
-import PocketBase from 'pocketbase';
 
-export default {
-  data() {
-    return {
-      video: null,
-      isLoading: true,
-      errorMessage: '',
-    };
-  },
-  async mounted() {
-    this.isLoading = true;
-    try {
-      const pb = new PocketBase('http://127.0.0.1:8090'); // Remplacez par votre URL
-      const videoId = this.$route.params.id; // Récupérer l'ID de la vidéo depuis les paramètres d'URL
-
-      // Récupérer les détails de la vidéo depuis PocketBase
-      this.video = await pb.collection('videos').getOne(videoId);
-    } catch (error) {
-      console.error('Erreur lors du chargement de la vidéo :', error);
-      this.errorMessage = 'Impossible de charger la vidéo.';
-    } finally {
-      this.isLoading = false;
-    }
-  },
-};
-</script>
 
 <style>
 /* Ajoutez des styles supplémentaires ici si nécessaire */
