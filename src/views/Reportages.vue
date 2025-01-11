@@ -7,6 +7,5 @@ import HomeSlider from '@/components/HomeSlider.vue';
 
 <template>
     <h1>Reportages</h1>
-    <HomeSlider />
-    <HomePlaylist />
+
 </template>

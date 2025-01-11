@@ -1,32 +1,45 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch, onUnmounted } from 'vue';
 import PocketBase from 'pocketbase';
+import PlaylistModal from './PlaylistModal.vue';
 
-// Types
-type Playlist = {
+// Interfaces
+interface Playlist {
   id: string;
   title: string;
   thumbnailurl: string | null;
-};
+  description?: string;
+  date?: string;
+}
 
-type Video = {
+interface Video {
   id: string;
   title: string;
   VideoTele: string | null;
   videoId?: string;
-};
+  description?: string;
+  duree?: string;
+  date?: string;
+}
 
 // Données réactives
 const selectedPlaylist = ref<Playlist | null>(null);
 const playlistsVideos = reactive<Record<string, Video[]>>({});
-const isLoading = ref(false);
-const errorMessage = ref('');
-const isModalOpen = ref(false);
+const isLoading = ref<boolean>(false);
+const errorMessage = ref<string>('');
+const isModalOpen = ref<boolean>(false);
+
+// Watch pour la gestion du scroll
+watch(isModalOpen, (newValue) => {
+  document.body.style.overflow = newValue ? 'hidden' : '';
+});
+
+// PocketBase instance
+const pb = new PocketBase('http://127.0.0.1:8090');
 
 // Charger les playlists et sélectionner une playlist aléatoire
-const loadPlaylists = async () => {
+const loadPlaylists = async (): Promise<void> => {
   isLoading.value = true;
-  const pb = new PocketBase('http://127.0.0.1:8090');
 
   try {
     const playlists = await pb.collection('playlists').getFullList<Playlist>();
@@ -34,7 +47,6 @@ const loadPlaylists = async () => {
     if (playlists.length > 0) {
       const randomPlaylist = playlists[Math.floor(Math.random() * playlists.length)];
 
-      // Charger les vidéos de la playlist sélectionnée
       const videos = await pb.collection('videos').getFullList<Video>(1, {
         filter: `id_playlists~"${randomPlaylist.id}"`,
       });
@@ -55,11 +67,10 @@ const loadPlaylists = async () => {
   }
 };
 
-// Charger les vidéos d'une playlist spécifique
-const loadPlaylistVideos = async (playlist: Playlist) => {
+// Charger les vidéos d'une playlist
+const loadPlaylistVideos = async (playlist: Playlist): Promise<void> => {
   if (!playlistsVideos[playlist.id]?.length) {
     isLoading.value = true;
-    const pb = new PocketBase('http://127.0.0.1:8090');
 
     try {
       const videos = await pb.collection('videos').getFullList<Video>(200, {
@@ -77,125 +88,132 @@ const loadPlaylistVideos = async (playlist: Playlist) => {
 };
 
 // Gestion du modal
-const openModal = () => {
+const openModal = (): void => {
   if (selectedPlaylist.value) {
     loadPlaylistVideos(selectedPlaylist.value);
     isModalOpen.value = true;
   }
 };
 
-const closeModal = () => {
+const closeModal = (): void => {
   isModalOpen.value = false;
 };
 
-// Appel initial
+// Gestionnaire de touche Escape
+const handleKeyDown = (event: KeyboardEvent): void => {
+  if (event.key === 'Escape') {
+    closeModal();
+  }
+};
+
+// Fonction pour calculer la largeur de la scrollbar
+const getScrollbarWidth = (): number => {
+  const outer = document.createElement('div');
+  outer.style.visibility = 'hidden';
+  outer.style.overflow = 'scroll';
+  document.body.appendChild(outer);
+
+  const inner = document.createElement('div');
+  outer.appendChild(inner);
+
+  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+  outer.parentNode?.removeChild(outer);
+
+  return scrollbarWidth;
+};
+
+// Modifiez le watch pour isModalOpen
+watch(isModalOpen, (newValue) => {
+  if (newValue) {
+    const scrollbarWidth = getScrollbarWidth();
+    document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+    document.body.classList.add('modal-open', 'modal-open-overflow');
+  } else {
+    document.body.classList.remove('modal-open', 'modal-open-overflow');
+  }
+});
+
+// Assurez-vous de nettoyer lors du démontage du composant
+onUnmounted(() => {
+  document.body.classList.remove('modal-open', 'modal-open-overflow');
+  document.body.style.removeProperty('--scrollbar-width');
+});
+
+// Cycle de vie
 onMounted(() => {
   loadPlaylists();
+  document.addEventListener('keydown', handleKeyDown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown);
+  document.body.style.overflow = '';
 });
 </script>
+
+
 <template>
-    <div>
-      <!-- Bannière de la playlist -->
-      <div v-if="selectedPlaylist && !isLoading" class="banner relative">
-        <img
-          v-if="selectedPlaylist.thumbnailurl"
-          :src="selectedPlaylist.thumbnailurl"
-          :alt="selectedPlaylist.title"
-          class="w-full h-64 object-cover rounded"
-        />
-        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <h2 class="text-white text-3xl font-bold">{{ selectedPlaylist?.title }}</h2>
-          <button
-            class="ml-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            @click="openModal"
-          >
-            Voir les vidéos
-          </button>
-        </div>
-      </div>
-  
-      <!-- Modale -->
-      <div
-        v-if="isModalOpen && selectedPlaylist"
-        class="modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 overflow-y-auto"
-        @keydown.esc="closeModal"
-        tabindex="0"
-      >
-        <div class="modal-content bg-white rounded-lg shadow-lg max-w-4xl w-full p-4 relative">
-          <button
-            class="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-            @click="closeModal"
-          >
-            ✕
-          </button>
-  
-          <h2 class="text-center text-2xl font-bold mb-4">
-            Vidéos de la playlist : {{ selectedPlaylist?.title }}
-          </h2>
-          <img
-            :src="selectedPlaylist.thumbnailurl || 'default-banner.jpg'"
-            :alt="selectedPlaylist.title"
-            class="w-full h-64 object-cover mb-4"
-          />
-
-  
-          <div v-if="playlistsVideos[selectedPlaylist.id]?.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div
-              v-for="video in playlistsVideos[selectedPlaylist.id]"
-              :key="video.id"
-              class="video-item bg-gray-800 p-4 rounded-lg shadow-md"
-            >
-              <h4 class="text-center mt-2">{{ video.title }}</h4>
-              <video
-                :src="`http://127.0.0.1:8090/api/files/videos/${video.id}/${video.VideoTele}`"
-                class="w-full mt-2 rounded-lg"
-                controls
-              ></video>
-            </div>
-          </div>
-  
-          <p v-else class="text-center text-gray-400">Aucune vidéo disponible pour cette playlist.</p>
-        </div>
-      </div>
-  
-      <!-- Message d'erreur -->
-      <div v-if="errorMessage" class="text-red-500 text-center mt-4">
-        {{ errorMessage }}
-      </div>
-  
-      <!-- Indicateur de chargement -->
-      <div v-if="isLoading" class="text-center mt-4">Chargement en cours...</div>
+  <div class="relative bg-thirdColor mt-14 text-white p-6 w-full px-12">
+    <!-- Section "À la une" -->
+    <h2 class="text-2xl md:text-3xl font-bold my-6">À la une</h2>
+    <div class="relative mb-8 mr-12">
+      <div class="h-1.5 w-[75%] md:w-[50%] lg:w-[25%] bg-primaryColor"></div>
     </div>
-  </template>
-<style scoped>
-/* Bannière */
-.banner img {
-  border-radius: 0.5rem;
-}
 
-.banner button {
-  font-size: 1rem;
-}
+    <!-- Bannière de la playlist -->
+    <div v-if="selectedPlaylist && !isLoading" class="banner relative w-full overflow-hidden h-[22.5rem] sm:h-[14rem] md:h-[18rem] lg:h-[23rem]">
+      <img
+        v-if="selectedPlaylist.thumbnailurl"
+        :src="selectedPlaylist.thumbnailurl"
+        :alt="selectedPlaylist.title"
+        class="w-full h-full object-cover"
+      />
+      <div class="absolute bottom-0 flex w-full flex-col px-4 pb-4 sm:bottom-auto sm:left-8 sm:top-1/2 sm:max-w-[320px] sm:-translate-y-1/2 sm:px-0 sm:pb-0 lg:left-10 lg:max-w-[400px] gap-y-3 lg:gap-y-4">
+        <!-- Logo SVG -->
+        <div class="relative">
+          <svg
+      id="Calque_1"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 500 253.04"
+      class="h-[4.5rem] sm:h-[4rem] md:h-[5rem] lg:h-[7.5rem]"
+    >
+      <g>
+        <path fill="#1d1d1b" d="M54.33,62.92v190.14H0V62.92h54.33Z" />
+        <path
+          fill="#1d1d1b"
+          d="M118.83,62.9v95.07c0,27.16,9.05,40.74,27.16,40.74s27.16-13.58,27.16-40.74V62.9h54.33v95.07c0,63.38-27.16,95.07-81.49,95.07s-81.49-31.69-81.49-95.07V62.9h54.33Z"
+        />
+      </g>
+      <rect fill="#1d1d1b" x="0" y="0" width="54.33" height="54.33" rx="27.16" />
+      <path
+        fill="#1d1d1b"
+        d="M500,62.9l-61.71,190.14h-74.42l-61.71-190.14h61.19l37.86,130.79,37.6-130.79h61.19Z"
+      />
+      <path fill="#f6a35d" d="M291.98,17.49v235.55h-54.33V17.49h54.33Z" />
+      <path fill="#f6a35d" d="M64.5-.02h435.5v54.33H64.5V-.02Z" />
+    </svg>
+        </div>
+        
+        <h2 class="font-sans font-semibold tracking-[0.02em] text-[0.875rem] leading-[1.125rem] sm:text-[1rem] sm:leading-[1.375rem] lg:text-[1.4375rem] lg:leading-[1.75rem]">
+          {{ selectedPlaylist?.title }}
+        </h2>
 
-/* Modal */
-.modal-content {
-  max-height: 80vh;
-  overflow-y: auto;
-  padding-right: 1rem;
-}
+        <button
+          class="bg-primaryColor text-white focus-visible:outline-selected flex items-center justify-center whitespace-nowrap duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 w-max rounded-3px px-4 gap-x-1 action-1 h-10 text-brand"
+          @click="openModal"
+        >
+          Lecture
+        </button>
+      </div>
+    </div>
 
-/* Scrollbar styles */
-.modal-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-  background-color: #cccccc;
-  border-radius: 4px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover {
-  background-color: #999999;
-}
-</style>
-  
+    <!-- Modal Component -->
+    <PlaylistModal
+      v-if="selectedPlaylist"
+      :is-open="isModalOpen"
+      :playlist="selectedPlaylist"
+      :videos="playlistsVideos[selectedPlaylist.id] || []"
+      :on-close="closeModal"
+    />
+  </div>
+</template>

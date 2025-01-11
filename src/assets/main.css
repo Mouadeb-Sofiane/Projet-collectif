@@ -6,4 +6,14 @@
     --primary-color: #FFA559; /* Exemple d'une couleur principale */
     --secondary-color: #FFFFFF; /* Exemple d'une couleur secondaire */
     --third-color: #000000;
+    
+  }
+
+  .modal-open {
+    padding-right: var(--scrollbar-width) !important;
+  }
+  
+  /* Pour empêcher le scroll de la page principale quand le modal est ouvert */
+  .modal-open-overflow {
+    overflow: hidden !important;
   }
