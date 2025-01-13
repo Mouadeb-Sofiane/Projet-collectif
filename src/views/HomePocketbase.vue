@@ -8,12 +8,10 @@ import ModalHome from '@/components/ModalHome.vue';
 
 <template>
     <div class="text-white bg-black">
-        <HomeSlider />
+    <HomeSlider />
     <HomePlaylist />
     <ModalHome />
     <HomePlaylist />
     <HomePlaylist />
-
-
 </div>
 </template>

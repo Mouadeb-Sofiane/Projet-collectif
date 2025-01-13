@@ -30,6 +30,21 @@ const isLoading = ref(true);
 const errorMessage = ref('');
 const isModalOpen = ref(false);
 
+// Fonction de gestion des erreurs avec réessai
+const fetchWithRetry = async (fn: Function, retries = 3, delay = 1000): Promise<any> => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) {
+        throw error; // Rethrow après dernier essai
+      }
+      console.warn(`Échec de la requête, tentative ${i + 1}...`);
+      await new Promise(res => setTimeout(res, delay)); // Attendre avant de réessayer
+    }
+  }
+};
+
 // Sélectionner une playlist
 const selectPlaylist = async (playlist: Playlist) => {
   selectedPlaylist.value = playlist;
@@ -39,9 +54,9 @@ const selectPlaylist = async (playlist: Playlist) => {
   if (!playlistsVideos[playlist.id]?.length) {
     try {
       const pb = new PocketBase('http://127.0.0.1:8090');
-      const videos = await pb.collection('videos').getFullList<Video>(200, {
+      const videos = await fetchWithRetry(() => pb.collection('videos').getFullList<Video>(200, {
         filter: `id_playlists~"${playlist.id}"`,
-      });
+      }));
 
       // Stocker les vidéos dans playlistsVideos
       playlistsVideos[playlist.id] = videos;
@@ -65,20 +80,20 @@ onMounted(async () => {
     const pb = new PocketBase('http://127.0.0.1:8090');
 
     // Récupérer les playlists
-    const fetchedPlaylists = await pb.collection('playlists').getFullList<Playlist>();
+    const fetchedPlaylists = await fetchWithRetry(() => pb.collection('playlists').getFullList<Playlist>());
 
     // Ajouter les miniatures
     const updatedPlaylists = await Promise.all(
       fetchedPlaylists.map(async (playlist) => {
         try {
-          const videos = await pb.collection('videos').getFullList<Video>(1, {
+          const videos = await fetchWithRetry(() => pb.collection('videos').getFullList<Video>(1, {
             filter: `id_playlists~"${playlist.id}"`,
-          });
+          }));
 
           if (videos.length > 0) {
             const video = videos[0];
             playlist.thumbnailurl = video.videoId
-              ? `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`
+              ? `https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`
               : null;
           } else {
             playlist.thumbnailurl = null;

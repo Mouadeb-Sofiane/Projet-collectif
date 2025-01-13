@@ -80,32 +80,42 @@ export default {
   },
 
   methods: {
+    // Fonction utilitaire pour mélanger un tableau
+    shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    },
+
     prepareSliderVideos() {
       // Réinitialiser le slider et l'index
       this.sliderVideos = [];
       this.currentVideoIndex = 0;
-      
+
       // Prioriser la vidéo en direct
       if (this.liveVideo) {
         this.sliderVideos.push({ type: 'youtube', data: this.liveVideo });
       }
-      
-      // Ajouter les vidéos locales (maximum 4)
-      const localVideos = [...this.allVideos]
-        .slice(0, 4)
+
+      // Mélanger les vidéos locales
+      const localVideos = this.shuffleArray([...this.allVideos])
+        .slice(0, 4) // Limiter à 4 vidéos maximum
         .map(video => ({ type: 'local', data: video }));
-      
+
+      // Ajouter les vidéos mélangées au slider
       this.sliderVideos = [...this.sliderVideos, ...localVideos];
 
-      // S'assurer qu'il y a exactement 4 vidéos
+      // S'assurer qu'il y a exactement 4 vidéos (avec un mélange supplémentaire si nécessaire)
       while (this.sliderVideos.length < 4) {
-        const remainingVideos = this.allVideos
-          .slice(this.sliderVideos.length)
+        const remainingVideos = this.shuffleArray([...this.allVideos])
+          .slice(0, 4 - this.sliderVideos.length)
           .map(video => ({ type: 'local', data: video }));
         this.sliderVideos.push(...remainingVideos);
       }
 
-      // Limiter à exactement 4 vidéos
+      // Limiter à exactement 4 vidéos après ajout
       this.sliderVideos = this.sliderVideos.slice(0, 4);
     },
 
@@ -157,7 +167,7 @@ export default {
       if (index !== this.currentVideoIndex) {
         this.currentVideoIndex = index;
         this.resetProgressBar();
-        
+
         // Redémarrer le slider automatique
         if (this.sliderInterval) {
           clearInterval(this.sliderInterval);
@@ -177,6 +187,7 @@ export default {
   },
 };
 </script>
+
 
 <template>
   <div class="bg-black text-white relative">

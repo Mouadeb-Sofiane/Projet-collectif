@@ -60,15 +60,12 @@ export default {
 
   <div v-if="video && !isLoading" class="featured-video mb-12">
     <div class="relative w-full h-screen overflow-hidden">
-
-    <video 
-      v-if="video.VideoTele"
-      :src="`http://127.0.0.1:8090/api/files/videos/${video.id}/${video.VideoTele}`"
-      class="w-full h-full object-cover"
-      loop
-      playsinline>
-    </video>
-  
+      <img
+        :src="`https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`"
+        alt="Vignette de la vidéo"
+        class="w-full h-full object-cover"
+      />
+   
     <!-- Dégradés -->
     <div 
         class="absolute inset-x-0 bottom-0"
