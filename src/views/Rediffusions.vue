@@ -16,7 +16,7 @@
           <!-- Image vidéo -->
           <Router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
             <img
-              :src="video.customThumbnail || `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`"
+              :src="video.customThumbnail || `https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`"
               alt="Vignette vidéo"
               class="w-full h-[180px] object-cover group-hover:brightness-75 transition-all"
             />

@@ -52,7 +52,7 @@ const loadPlaylists = async (): Promise<void> => {
       });
 
       randomPlaylist.thumbnailurl = videos.length > 0 && videos[0].videoId
-        ? `https://img.youtube.com/vi/${videos[0].videoId}/maxresdefault.jpg`
+        ? `https://img.youtube.com/vi/${videos[0].videoId}/sddefault.jpg`
         : null;
 
       selectedPlaylist.value = randomPlaylist;

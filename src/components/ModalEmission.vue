@@ -47,10 +47,7 @@ const selectPlaylist = async (playlist: Playlist) => {
       // Stocker les vidéos dans playlistsVideos
       playlistsVideos[playlist.id] = videos;
     } catch (error) {
-      console.error(
-        "Erreur lors du chargement des vidéos pour la playlist:",
-        error
-      );
+      console.error("Erreur lors du chargement des vidéos pour la playlist:", error);
       errorMessage.value = `Impossible de charger les vidéos pour la playlist ${playlist.title}.`;
     }
   }
@@ -69,36 +66,30 @@ onMounted(async () => {
     const pb = new PocketBase("http://127.0.0.1:8090");
 
     // Récupérer les playlists
-    const fetchedPlaylists = await pb
-      .collection("playlists")
-      .getFullList<Playlist>();
+    const fetchedPlaylists = await pb.collection("playlists").getFullList<Playlist>();
 
-    // Ajouter les miniatures
-    const updatedPlaylists = await Promise.all(
-      fetchedPlaylists.map(async (playlist) => {
-        try {
-          const videos = await pb.collection("videos").getFullList<Video>(1, {
-            filter: `id_playlists~"${playlist.id}"`,
-          });
+    // Ajouter la miniature de la première vidéo de chaque playlist
+    const updatedPlaylists = [];
+    for (const playlist of fetchedPlaylists) {
+      try {
+        const videos = await pb.collection("videos").getFullList<Video>(1, {
+          filter: `id_playlists~"${playlist.id}"`,
+        });
 
-          if (videos.length > 0) {
-            const video = videos[0];
-            playlist.thumbnailurl = video.videoId
-              ? `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`
-              : null;
-          } else {
-            playlist.thumbnailurl = null;
-          }
-        } catch (error) {
-          console.error(
-            `Erreur lors du chargement des vidéos pour la playlist ${playlist.id}:`,
-            error
-          );
-          playlist.thumbnailurl = null;
+        if (videos.length > 0) {
+          const video = videos[0]; // Prendre uniquement la première vidéo
+          playlist.thumbnailurl = video.videoId
+            ? `https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`
+            : null;
+        } else {
+          playlist.thumbnailurl = null; // Si aucune vidéo n'est disponible
         }
-        return playlist;
-      })
-    );
+      } catch (error) {
+        console.error(`Erreur lors du chargement des vidéos pour la playlist ${playlist.id}:`, error);
+        playlist.thumbnailurl = null;
+      }
+      updatedPlaylists.push(playlist); // Ajouter la playlist au tableau mis à jour après avoir traité la vidéo
+    }
 
     playlists.value = updatedPlaylists;
   } catch (error) {
@@ -110,25 +101,13 @@ onMounted(async () => {
 });
 </script>
 
+
 <template>
   <div class="bg-black">
     <!-- Playlists Grid -->
-    <div
-      v-if="playlists.length && !isLoading"
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 mx-auto max-w-[2000px]"
-    >
-      <div
-        v-for="playlist in playlists"
-        :key="playlist.id"
-        class="relative aspect-[4/3] cursor-pointer group"
-        @click="selectPlaylist(playlist)"
-      >
-        <img
-          v-if="playlist.thumbnailurl"
-          :src="playlist.thumbnailurl"
-          :alt="playlist.title"
-          class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
-        />
+    <div v-if="playlists.length && !isLoading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 mx-auto max-w-[2000px]">
+      <div v-for="playlist in playlists" :key="playlist.id" class="relative aspect-[4/3] cursor-pointer group" @click="selectPlaylist(playlist)">
+        <img v-if="playlist.thumbnailurl" :src="playlist.thumbnailurl" :alt="playlist.title" class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105" />
       </div>
     </div>
 
@@ -136,9 +115,7 @@ onMounted(async () => {
     <PlaylistModal
       :is-open="isModalOpen"
       :playlist="selectedPlaylist"
-      :videos="
-        selectedPlaylist ? playlistsVideos[selectedPlaylist.id] || [] : []
-      "
+      :videos="selectedPlaylist ? playlistsVideos[selectedPlaylist.id] || [] : []"
       :on-close="closeModal"
     />
 

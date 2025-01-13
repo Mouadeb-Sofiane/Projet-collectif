@@ -93,7 +93,7 @@ export default {
             <div class="relative">
               <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
                 <img
-                  :src="`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`"
+                  :src="`https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`"
                   alt="Vignette de la vidéo"
                   class="w-30% h-full object-cover rounded-t-lg"
                 />

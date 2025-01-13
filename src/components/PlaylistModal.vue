@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts"> 
 import { ref, watch, computed } from "vue";
 
 interface Props {
@@ -78,7 +78,7 @@ watch(
         <!-- Header avec bannière -->
         <div class="w-full h-[400px] md:h-[500px] relative">
           <img
-            :src="playlist.thumbnailurl || 'src/img/default/imgdedefault.jpg'"
+            :src="videos[0] ? `https://img.youtube.com/vi/${videos[0].videoId}/sddefault.jpg` : playlist.thumbnailurl"
             :alt="playlist.title"
             class="w-full h-full object-cover md:rounded-t-lg"
           />
@@ -123,9 +123,9 @@ watch(
           <div class="flex space-x-8 px-8 py-4">
             <button
               @click="activeTab = 'episodes'"
-              :class="[
-                'font-medium transition-colors',
-                activeTab === 'episodes' ? 'text-white' : 'text-white/50',
+              :class="[ 
+                'font-medium transition-colors', 
+                activeTab === 'episodes' ? 'text-white' : 'text-white/50' 
               ]"
             >
               EPISODES
@@ -133,9 +133,9 @@ watch(
 
             <button
               @click="activeTab = 'info'"
-              :class="[
-                'font-medium transition-colors',
-                activeTab === 'info' ? 'text-white' : 'text-white/50',
+              :class="[ 
+                'font-medium transition-colors', 
+                activeTab === 'info' ? 'text-white' : 'text-white/50' 
               ]"
             >
               PLUS D'INFOS
@@ -159,7 +159,7 @@ watch(
                   :to="{ name: 'singleVideoPocket', params: { id: video.id } }"
                 >
                   <img
-                    :src="`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`"
+                    :src="`https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`"
                     alt="Vignette de la vidéo"
                     class="w-30% h-full object-cover rounded-t-lg"
                   />
