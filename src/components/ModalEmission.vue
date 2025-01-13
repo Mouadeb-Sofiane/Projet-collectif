@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import PocketBase from 'pocketbase';
-import PlaylistModal from './PlaylistModal.vue'; // Import du composant modal
+import { ref, reactive, onMounted } from "vue";
+import PocketBase from "pocketbase";
+import PlaylistModal from "./PlaylistModal.vue"; // Import du composant modal
 
 // Types
 type Playlist = {
   id: string;
   title: string;
   thumbnailurl: string | null;
+  miniaturePlaylist?: string;
   description?: string;
   date?: string;
 };
@@ -27,7 +28,7 @@ const playlists = ref<Playlist[]>([]);
 const playlistsVideos = reactive<Record<string, Video[]>>({});
 const selectedPlaylist = ref<Playlist | null>(null);
 const isLoading = ref(true);
-const errorMessage = ref('');
+const errorMessage = ref("");
 const isModalOpen = ref(false);
 
 // Sélectionner une playlist
@@ -38,15 +39,18 @@ const selectPlaylist = async (playlist: Playlist) => {
   // Charger les vidéos si elles ne sont pas déjà chargées
   if (!playlistsVideos[playlist.id]?.length) {
     try {
-      const pb = new PocketBase('http://127.0.0.1:8090');
-      const videos = await pb.collection('videos').getFullList<Video>(200, {
+      const pb = new PocketBase("http://127.0.0.1:8090");
+      const videos = await pb.collection("videos").getFullList<Video>(200, {
         filter: `id_playlists~"${playlist.id}"`,
       });
 
       // Stocker les vidéos dans playlistsVideos
       playlistsVideos[playlist.id] = videos;
     } catch (error) {
-      console.error('Erreur lors du chargement des vidéos pour la playlist:', error);
+      console.error(
+        "Erreur lors du chargement des vidéos pour la playlist:",
+        error
+      );
       errorMessage.value = `Impossible de charger les vidéos pour la playlist ${playlist.title}.`;
     }
   }
@@ -62,16 +66,18 @@ const closeModal = () => {
 onMounted(async () => {
   isLoading.value = true;
   try {
-    const pb = new PocketBase('http://127.0.0.1:8090');
+    const pb = new PocketBase("http://127.0.0.1:8090");
 
     // Récupérer les playlists
-    const fetchedPlaylists = await pb.collection('playlists').getFullList<Playlist>();
+    const fetchedPlaylists = await pb
+      .collection("playlists")
+      .getFullList<Playlist>();
 
     // Ajouter les miniatures
     const updatedPlaylists = await Promise.all(
       fetchedPlaylists.map(async (playlist) => {
         try {
-          const videos = await pb.collection('videos').getFullList<Video>(1, {
+          const videos = await pb.collection("videos").getFullList<Video>(1, {
             filter: `id_playlists~"${playlist.id}"`,
           });
 
@@ -84,7 +90,10 @@ onMounted(async () => {
             playlist.thumbnailurl = null;
           }
         } catch (error) {
-          console.error(`Erreur lors du chargement des vidéos pour la playlist ${playlist.id}:`, error);
+          console.error(
+            `Erreur lors du chargement des vidéos pour la playlist ${playlist.id}:`,
+            error
+          );
           playlist.thumbnailurl = null;
         }
         return playlist;
@@ -93,8 +102,8 @@ onMounted(async () => {
 
     playlists.value = updatedPlaylists;
   } catch (error) {
-    console.error('Erreur lors du chargement des données :', error);
-    errorMessage.value = 'Impossible de charger les playlists.';
+    console.error("Erreur lors du chargement des données :", error);
+    errorMessage.value = "Impossible de charger les playlists.";
   } finally {
     isLoading.value = false;
   }
@@ -102,10 +111,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg-black ">
+  <div class="bg-black">
     <!-- Playlists Grid -->
-    <div 
-      v-if="playlists.length && !isLoading" 
+    <div
+      v-if="playlists.length && !isLoading"
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 mx-auto max-w-[2000px]"
     >
       <div
@@ -127,7 +136,9 @@ onMounted(async () => {
     <PlaylistModal
       :is-open="isModalOpen"
       :playlist="selectedPlaylist"
-      :videos="selectedPlaylist ? playlistsVideos[selectedPlaylist.id] || [] : []"
+      :videos="
+        selectedPlaylist ? playlistsVideos[selectedPlaylist.id] || [] : []
+      "
       :on-close="closeModal"
     />
 
