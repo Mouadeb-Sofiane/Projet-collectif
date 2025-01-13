@@ -1,19 +1,28 @@
 <script>
+
 import PocketBase from 'pocketbase';
 import { fetchYouTubeVideos, fetchYouTubePlaylists, fetchLiveStream } from '@/services/YoutubeServices';
+import CustomVideoPlayer from '@/components/CustomVideoPlayer.vue';  // Ajoutez cette ligne
+
+
+
 
 export default {
+  components: {
+    CustomVideoPlayer  // Ajoutez cette ligne
+  },
   data() {
     return {
-      playlists: [], // Playlists depuis YouTube
-      playlistsVideos: {}, // Vidéos par playlist depuis YouTube
-      allVideos: [], // Toutes les vidéos depuis PocketBase
-      liveVideo: null, // Vidéo du live depuis YouTube
-      randomVideo: null, // Vidéo aléatoire depuis PocketBase
-      isLoading: true, // État de chargement
-      errorMessage: '', // Message d'erreur
+      playlists: [],
+      playlistsVideos: {},
+      allVideos: [],
+      liveVideo: null,
+      randomVideo: null,
+      isLoading: true,
+      errorMessage: '',
     };
   },
+
   async mounted() {
     this.isLoading = true;
     try {
@@ -77,44 +86,32 @@ export default {
     </div>
 
     <!-- Vidéo en direct ou vidéo aléatoire -->
-    <div class="p-4">
-    <!-- Chargement en cours -->
-    <div v-if="isLoading" class="flex items-center justify-center h-screen">
-      <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
-    </div>
-
-    <!-- Affichage des erreurs -->
-    <div v-if="errorMessage" class="text-center text-red-500">
-      <p>{{ errorMessage }}</p>
-    </div>
-
-    <!-- Vidéo en direct ou vidéo aléatoire -->
     <div v-if="liveVideo || randomVideo" class="featured-video mb-12">
       <div class="relative w-full h-screen overflow-hidden">
+        <!-- Iframe YouTube reste inchangé -->
         <iframe
-  v-if="liveVideo"
-  :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
-  class="w-full h-full object-cover"
-  frameborder="0"
-  allow="autoplay; encrypted-media"
-></iframe>
+          v-if="liveVideo"
+          :src="`https://www.youtube.com/embed/${liveVideo.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${liveVideo.id.videoId}`"
+          class="w-full h-full object-cover"
+          frameborder="0"
+          allow="autoplay; encrypted-media"
+        ></iframe>
 
-        <video 
-          v-if="randomVideo && randomVideo.VideoTele" 
-          :src="`http://127.0.0.1:8090/api/files/videos/${randomVideo.id}/${randomVideo.VideoTele}`" 
-          class="w-full h-full object-cover" 
-          autoplay
-          muted
-          loop
-          playsinline>
-        </video>
+        <!-- Remplacez la balise video par le CustomVideoPlayer -->
+        <CustomVideoPlayer
+          v-if="randomVideo && randomVideo.VideoTele"
+          :video-url="`http://127.0.0.1:8090/api/files/videos/${randomVideo.id}/${randomVideo.VideoTele}`"
+        />
+
+        <!-- Le dégradé reste inchangé -->
         <div 
           class="absolute inset-x-0 bottom-0" 
           style="background:linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);height:20%;"
         ></div>
       </div>
     </div>
-  </div>
+
+
 
     <!-- Section Vidéos -->
     <div v-if="playlistsVideos['yt'] && playlistsVideos['yt'].length">
@@ -176,7 +173,7 @@ export default {
             >
               <h4 class="text-base font-medium">{{ video.title }}</h4>
               <p class="text-sm text-gray-600 text-center">{{ video.description }}</p>
-              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+              <RouterLink :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
                 <img
                   :src="video.thumbnailUrl"
                   :alt="video.title"
@@ -187,7 +184,7 @@ export default {
                 >
                   Regarder
                 </button>
-              </router-link>
+              </RouterLink>
             </div>
           </div>
         </div>
