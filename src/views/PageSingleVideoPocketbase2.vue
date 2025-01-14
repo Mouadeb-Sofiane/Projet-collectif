@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import PocketBase from 'pocketbase';
 import CustomVideoPlayer from '@/components/CustomVideoPlayer.vue';
+import Share from '@/img/partager.png';
 
 interface Video {
   id: string;
@@ -137,11 +138,7 @@ onMounted(async () => {
           </div>
 
           <div class="flex justify-start mt-8">
-            <button
-              class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-md"
-            >
-              Partager
-            </button>
+            <img :src="Share" class="w-8 h-8" alt="Forward" />
           </div>
         </div>
       </div>

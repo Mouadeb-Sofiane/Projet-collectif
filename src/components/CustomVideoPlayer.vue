@@ -19,28 +19,11 @@ const playbackSpeed = ref(1);
 const showSpeedOptions = ref(false);
 const isFullscreen = ref(false);
 const showControls = ref(true);
+const isMouseOverControls = ref(false);
 const hideTimeout = ref<number | null>(null);
 const availableSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-// Fonction pour masquer les contrôles
-const hideControls = () => {
-  if (hideTimeout.value) {
-    window.clearTimeout(hideTimeout.value);
-  }
-  hideTimeout.value = window.setTimeout(() => {
-    if (isFullscreen.value && !showSpeedOptions.value) {
-      showControls.value = false;
-    }
-  }, 3000); // 3 secondes d'inactivité
-};
-
-// Fonction pour afficher les contrôles
-const showControlsHandler = () => {
-  showControls.value = true;
-  hideControls();
-};
-
-// Reste du code existant...
+// Gestion du temps
 const formatTime = (time: number): string => {
   const hours = Math.floor(time / 3600);
   const minutes = Math.floor((time % 3600) / 60);
@@ -48,15 +31,46 @@ const formatTime = (time: number): string => {
   return `${hours > 0 ? hours.toString().padStart(2, '0') + ':' : ''}${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 };
 
+// Gestion des contrôles
+const hideControls = () => {
+  if (hideTimeout.value) {
+    window.clearTimeout(hideTimeout.value);
+  }
+  hideTimeout.value = window.setTimeout(() => {
+    if (!isMouseOverControls.value && isPlaying.value) {
+      showControls.value = false;
+    }
+  }, 3000);
+};
+
+const showControlsHandler = () => {
+  showControls.value = true;
+  hideControls();
+};
+
+const handleMouseEnter = () => {
+  isMouseOverControls.value = true;
+  showControls.value = true;
+  if (hideTimeout.value) {
+    window.clearTimeout(hideTimeout.value);
+  }
+};
+
+const handleMouseLeave = () => {
+  isMouseOverControls.value = false;
+  hideControls();
+};
+
+// Contrôles de lecture
 const handlePlayPause = () => {
   if (!videoRef.value) return;
-  
   if (isPlaying.value) {
     videoRef.value.pause();
   } else {
     videoRef.value.play();
   }
   isPlaying.value = !isPlaying.value;
+  hideControls();
 };
 
 const handleTimeUpdate = () => {
@@ -66,7 +80,6 @@ const handleTimeUpdate = () => {
 
 const handleProgressBarClick = (e: MouseEvent) => {
   if (!videoRef.value || !progressBarRef.value) return;
-  
   const rect = progressBarRef.value.getBoundingClientRect();
   const pos = (e.clientX - rect.left) / rect.width;
   videoRef.value.currentTime = pos * duration.value;
@@ -77,12 +90,23 @@ const handleSkip = (seconds: number) => {
   videoRef.value.currentTime = videoRef.value.currentTime + seconds;
 };
 
+// Contrôles audio
 const toggleMute = () => {
   if (!videoRef.value) return;
   videoRef.value.muted = !videoRef.value.muted;
   isMuted.value = !isMuted.value;
 };
 
+// Contrôles de vitesse
+const setPlaybackSpeed = (speed: number) => {
+  if (!videoRef.value) return;
+  videoRef.value.playbackRate = speed;
+  playbackSpeed.value = speed;
+  showSpeedOptions.value = false;
+  hideControls();
+};
+
+// Gestion du plein écran
 const toggleFullscreen = async () => {
   if (!containerRef.value) return;
   
@@ -90,7 +114,7 @@ const toggleFullscreen = async () => {
     try {
       await containerRef.value.requestFullscreen();
       isFullscreen.value = true;
-      hideControls(); // Démarrer le timer quand on passe en plein écran
+      hideControls();
     } catch (err) {
       console.error('Error attempting to enable fullscreen:', err);
     }
@@ -98,7 +122,7 @@ const toggleFullscreen = async () => {
     try {
       await document.exitFullscreen();
       isFullscreen.value = false;
-      showControls.value = true; // Toujours afficher les contrôles hors plein écran
+      showControls.value = true;
       if (hideTimeout.value) {
         window.clearTimeout(hideTimeout.value);
       }
@@ -108,14 +132,7 @@ const toggleFullscreen = async () => {
   }
 };
 
-const setPlaybackSpeed = (speed: number) => {
-  if (!videoRef.value) return;
-  videoRef.value.playbackRate = speed;
-  playbackSpeed.value = speed;
-  showSpeedOptions.value = false;
-  hideControls(); // Redémarrer le timer après avoir changé la vitesse
-};
-
+// Cycle de vie du composant
 onMounted(() => {
   if (videoRef.value) {
     duration.value = videoRef.value.duration;
@@ -129,7 +146,6 @@ onMounted(() => {
   });
 });
 
-// Nettoyer le timeout quand le composant est détruit
 onBeforeUnmount(() => {
   if (hideTimeout.value) {
     window.clearTimeout(hideTimeout.value);
@@ -143,8 +159,9 @@ onBeforeUnmount(() => {
     class="relative bg-black w-full h-full group"
     :class="{ 'fixed inset-0 z-50': isFullscreen }"
     @mousemove="showControlsHandler"
+    @mouseleave="handleMouseLeave"
   >
-    <!-- Video -->
+    <!-- Vidéo -->
     <video
       ref="videoRef"
       :src="videoUrl"
@@ -153,23 +170,25 @@ onBeforeUnmount(() => {
       @click="handlePlayPause"
     />
 
-    <!-- Controls overlay with gradient -->
+    <!-- Overlay des contrôles -->
     <div 
       class="absolute bottom-0 left-0 right-0 w-full h-full bg-gradient-to-t from-orange-500/30 to-transparent transition-opacity duration-300"
       :class="{
         'opacity-0': !showControls,
-        'opacity-100': showControls && (isFullscreen || isPlaying),
-        'group-hover:opacity-100': !isFullscreen
+        'opacity-100': showControls,
+        'pointer-events-none': !showControls
       }"
+      @mouseenter="handleMouseEnter"
+      @mouseleave="handleMouseLeave"
     >
+      <!-- Container des contrôles -->
       <div class="absolute bottom-0 left-0 right-0 px-4 py-3">
-        <!-- Le reste du code des contrôles reste identique -->
-        <!-- Time display -->
+        <!-- Affichage du temps -->
         <div class="text-white text-sm mb-2">
           {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
         </div>
 
-        <!-- Progress bar -->
+        <!-- Barre de progression -->
         <div 
           ref="progressBarRef"
           class="w-full h-1 bg-white/30 cursor-pointer mb-4 relative"
@@ -183,44 +202,36 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- Controls -->
+        <!-- Contrôles -->
         <div class="flex items-center justify-between text-white">
-          <div class="flex items-center">
-            <!-- Skip backward -->
+          <!-- Contrôles de gauche -->
+          <div class="flex items-center space-x-2">
+            <!-- Retour rapide -->
             <button @click="() => handleSkip(-10)" class="hover:text-[#FFA559] p-2">
-              <img :src="BackIcon" class="w-8 h-8" alt="Rewind" />
+              <img :src="BackIcon" class="w-8 h-8" alt="Retour rapide" />
             </button>
 
-            <!-- Play/Pause -->
+            <!-- Lecture/Pause -->
             <button @click="handlePlayPause" class="hover:text-[#FFA559] p-2">
               <div class="w-10 h-10 flex items-center justify-center">
-                <svg
-                  v-if="!isPlaying"
-                  class="w-10 h-10"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
+                <svg v-if="!isPlaying" class="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z" />
                 </svg>
-                <svg
-                  v-else
-                  class="w-10 h-10"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
+                <svg v-else class="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
                 </svg>
               </div>
             </button>
 
-            <!-- Skip forward -->
+            <!-- Avance rapide -->
             <button @click="() => handleSkip(10)" class="hover:text-[#FFA559] p-2">
-              <img :src="ForwardIcon" class="w-8 h-8" alt="Forward" />
+              <img :src="ForwardIcon" class="w-8 h-8" alt="Avance rapide" />
             </button>
           </div>
 
-          <div class="flex items-center gap-4">
-            <!-- Playback Speed -->
+          <!-- Contrôles de droite -->
+          <div class="flex items-center space-x-4">
+            <!-- Vitesse de lecture -->
             <div class="relative">
               <button 
                 @click="showSpeedOptions = !showSpeedOptions" 
@@ -229,7 +240,7 @@ onBeforeUnmount(() => {
                 <span class="text-sm">{{ playbackSpeed }}x</span>
               </button>
               
-              <!-- Speed options dropdown -->
+              <!-- Options de vitesse -->
               <div 
                 v-if="showSpeedOptions"
                 class="absolute bottom-full mb-2 bg-black/90 rounded-lg py-2"
@@ -256,7 +267,7 @@ onBeforeUnmount(() => {
               </svg>
             </button>
 
-            <!-- Fullscreen -->
+            <!-- Plein écran -->
             <button @click="toggleFullscreen" class="hover:text-[#FFA559] p-1">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
