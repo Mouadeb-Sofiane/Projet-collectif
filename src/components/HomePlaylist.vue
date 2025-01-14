@@ -90,14 +90,14 @@ export default {
           :style="{ width: `${itemWidth}px` }"
         >
           <div class="rounded-lg shadow-md">
-            <div class="relative">
-              <router-link :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+            <div class="relative w-full aspect-video flex-shrink-0">
+              <RouterLink :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
                 <img
                   :src="`https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`"
                   alt="Vignette de la vidéo"
-                  class="w-30% h-full object-cover rounded-t-lg"
+                  class="w-full h-full object-cover"
                 />
-              </router-link>
+              </RouterLink>
               <div>
                 <span v-if="video.duration" class="bg-primaryColor absolute bottom-2 right-2 bg-black bg-opacity-75 text-black text-xs px-2 py-1 rounded">
                   {{ formatDuration(video.duration) }}
@@ -174,6 +174,3 @@ export default {
   max-width: 100%;
 }
 </style>
-
-                
-              

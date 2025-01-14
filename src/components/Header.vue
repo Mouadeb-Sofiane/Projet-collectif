@@ -84,7 +84,7 @@ const closeMobileMenu = () => {
           <div class="flex justify-between items-center mb-8">
             <!-- Logo -->
             <RouterLink to="/" class="flex-shrink-0">
-              <img src="../img/WEBTV.png" class="h-12" alt="logo du site" />
+              <img src="../img/WEBTV.png" class="h-8" alt="logo du site" />
             </RouterLink>
             <!-- Bouton fermeture -->
             <button @click="closeMobileMenu" class="text-white bg-inherit">

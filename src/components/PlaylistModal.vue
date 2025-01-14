@@ -155,15 +155,15 @@ watch(
               <div
                 class="relative w-full md:w-[300px] aspect-video flex-shrink-0"
               >
-                <router-link
-                  :to="{ name: 'singleVideoPocket', params: { id: video.id } }"
+                <RouterLink
+                  :to="{ name: 'singleVideoPocket2', params: { id: video.id } }"
                 >
                   <img
                     :src="`https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`"
                     alt="Vignette de la vidéo"
-                    class="w-30% h-full object-cover rounded-t-lg"
+                    class="w-full h-full object-cover rounded-lg"
                   />
-                </router-link>
+                </RouterLinK>
               </div>
 
               <div class="flex-grow space-y-2">

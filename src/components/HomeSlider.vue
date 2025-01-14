@@ -32,7 +32,6 @@ export default {
     try {
       const pb = new PocketBase('http://127.0.0.1:8090');
 
-      // Vérification et chargement des données en cache
       if (!this.cache.playlists || !this.cache.videos) {
         this.cache.playlists = await pb.collection('playlists').getFullList();
         this.cache.videos = await pb.collection('videos').getFullList(200);
@@ -41,7 +40,6 @@ export default {
       this.playlists = [...this.cache.playlists];
       this.allVideos = [...this.cache.videos];
 
-      // Récupération des vidéos par playlist
       for (const playlist of this.playlists) {
         const videos = await pb.collection('videos').getFullList(200, {
           filter: `id_playlists~"${playlist.id}"`,
@@ -49,7 +47,6 @@ export default {
         this.playlistsVideos[playlist.id] = videos;
       }
 
-      // Limitation des requêtes API YouTube
       const now = Date.now();
       const fifteenMinutes = 15 * 60 * 1000;
 
@@ -64,11 +61,9 @@ export default {
         this.playlistsVideos['yt'] = ytVideos;
       }
 
-      // Chargement de la vidéo en direct
       this.liveVideo = await fetchLiveStream();
       this.status = this.liveVideo ? 'EN DIRECT' : 'ÉMISSION';
 
-      // Préparation et démarrage du slider
       await this.prepareSliderVideos();
       this.startSlider();
     } catch (error) {
@@ -80,47 +75,40 @@ export default {
   },
 
   methods: {
-    // Fonction utilitaire pour mélanger un tableau
     shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
       }
-      return array;
+      return newArray;
     },
 
-    prepareSliderVideos() {
-      // Réinitialiser le slider et l'index
+    async prepareSliderVideos() {
       this.sliderVideos = [];
       this.currentVideoIndex = 0;
 
-      // Prioriser la vidéo en direct
       if (this.liveVideo) {
         this.sliderVideos.push({ type: 'youtube', data: this.liveVideo });
       }
 
-      // Mélanger les vidéos locales
-      const localVideos = this.shuffleArray([...this.allVideos])
-        .slice(0, 4) // Limiter à 4 vidéos maximum
+      const localVideos = this.shuffleArray(this.allVideos)
+        .slice(0, 4)
         .map(video => ({ type: 'local', data: video }));
 
-      // Ajouter les vidéos mélangées au slider
       this.sliderVideos = [...this.sliderVideos, ...localVideos];
 
-      // S'assurer qu'il y a exactement 4 vidéos (avec un mélange supplémentaire si nécessaire)
       while (this.sliderVideos.length < 4) {
-        const remainingVideos = this.shuffleArray([...this.allVideos])
+        const remainingVideos = this.shuffleArray(this.allVideos)
           .slice(0, 4 - this.sliderVideos.length)
           .map(video => ({ type: 'local', data: video }));
         this.sliderVideos.push(...remainingVideos);
       }
 
-      // Limiter à exactement 4 vidéos après ajout
       this.sliderVideos = this.sliderVideos.slice(0, 4);
     },
 
     startSlider() {
-      // Nettoyer les intervalles existants
       if (this.sliderInterval) clearInterval(this.sliderInterval);
       if (this.progressInterval) clearInterval(this.progressInterval);
 
@@ -143,10 +131,7 @@ export default {
       const step = 100 / (duration / interval);
 
       this.progressPercentage = 0;
-
-      if (this.progressInterval) {
-        clearInterval(this.progressInterval);
-      }
+      if (this.progressInterval) clearInterval(this.progressInterval);
 
       this.progressInterval = setInterval(() => {
         if (this.progressPercentage < 100) {
@@ -156,9 +141,7 @@ export default {
     },
 
     resetProgressBar() {
-      if (this.progressInterval) {
-        clearInterval(this.progressInterval);
-      }
+      if (this.progressInterval) clearInterval(this.progressInterval);
       this.progressPercentage = 0;
       this.startProgressBar();
     },
@@ -168,167 +151,148 @@ export default {
         this.currentVideoIndex = index;
         this.resetProgressBar();
 
-        // Redémarrer le slider automatique
         if (this.sliderInterval) {
           clearInterval(this.sliderInterval);
           this.startSlider();
         }
       }
     },
+  },
 
-    beforeDestroy() {
-      if (this.sliderInterval) {
-        clearInterval(this.sliderInterval);
-      }
-      if (this.progressInterval) {
-        clearInterval(this.progressInterval);
-      }
-    },
+  beforeDestroy() {
+    if (this.sliderInterval) clearInterval(this.sliderInterval);
+    if (this.progressInterval) clearInterval(this.progressInterval);
   },
 };
 </script>
 
-
 <template>
   <div class="bg-black text-white relative">
-    <!-- Chargement en cours -->
     <div v-if="isLoading" class="flex items-center justify-center h-screen">
       <h1 class="text-2xl font-semibold animate-pulse">Chargement...</h1>
     </div>
 
-    <!-- Affichage des erreurs -->
     <div v-if="errorMessage" class="text-center text-red-500">
       <p>{{ errorMessage }}</p>
     </div>
 
-    <!-- Slider de vidéos -->
     <div v-if="sliderVideos.length && !isLoading" class="relative h-screen w-full">
+      <!-- Container pour tous les slides -->
       <div class="absolute inset-0">
-        <div 
-          v-for="(video, index) in sliderVideos" 
-          :key="index" 
-          class="absolute inset-0 transition-opacity duration-500"
-          :class="{ 'opacity-100': index === currentVideoIndex, 'opacity-0': index !== currentVideoIndex }"
-        >
-          <!-- Vidéo YouTube -->
-          <iframe
-            v-if="video.type === 'youtube' && video.data.id && video.data.id.videoId"
-            :src="`https://www.youtube.com/embed/${video.data.id.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${video.data.id.videoId}`"
-            class="w-full h-full object-cover"
-            frameborder="0"
-            allow="autoplay; encrypted-media"
-          ></iframe>
-
-          <!-- Vidéo locale -->
-          <video
-            v-if="video.type === 'local' && video.data.id && video.data.VideoTele"
-            :src="`http://127.0.0.1:8090/api/files/videos/${video.data.id}/${video.data.VideoTele}`"
-            class="w-full h-full object-cover"
-            autoplay
-            muted
-            loop
-            playsinline
-          ></video>
-          
-          <!-- Dégradés -->
+        <transition-group name="slide">
           <div 
-            class="absolute inset-x-0 bottom-0"
-            style="background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); height: 50%;"
-          ></div>
-
-          <div 
-            class="hidden md:block absolute inset-y-0 left-0"
-            style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); width: 50%;"
-          ></div>
-
-          <!-- Contenu textuel -->
-          <div
-            class="absolute inset-0 flex flex-col justify-end items-center text-center md:text-start p-6 text-white md:justify-center md:items-start md:p-12"
+            v-for="(video, index) in sliderVideos" 
+            :key="video.data.id || index"
+            class="absolute inset-0 transition-opacity duration-500"
+            :class="{ 'opacity-100 z-10': index === currentVideoIndex, 'opacity-0 z-0': index !== currentVideoIndex }"
           >
-            <h1 class="text-sm font-[400] mb-[1rem] md:text-sm md:mb-12 tracking-[0.5em]">
-              {{ video.type === 'youtube' ? 'EN DIRECT' : 'ÉMISSION' }}
-            </h1>
-            <h1 class="text-5xl font-[800] mb-[3rem] md:text-5xl lg:text-7xl md:mb-8 max-w-2xl uppercase">
-              {{ 
-                video.type === 'youtube' 
-                ? video.data.snippet.title 
-                : video.data.title 
-              }}
-            </h1>
-            <p class="text-lg mb-[3rem] md:text-2xl md:mb-8 max-w-lg uppercase">
-              {{ 
-                video.type === 'youtube' 
-                ? (video.data.snippet.description.length > 70 
-                  ? video.data.snippet.description.slice(0, 70) + '...' 
-                  : video.data.snippet.description)
-                : (video.data.description.length > 70 
-                  ? video.data.description.slice(0, 70) + '...' 
-                  : video.data.description)
-              }}
-            </p>
-          
-            <!-- Boutons d'action -->
-            <div class="mb-10">
-              <a
-                v-if="video.type === 'youtube'"
-                :href="`https://www.youtube.com/embed/${video.data.id.videoId}?autoplay=1`"
-                target="_blank"
-                class="bg-white hover:bg-gray-300 text-rouges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
-              >
-                VOIR LE DIRECT
-              </a>
-              
-              <RouterLink
-                v-else
-                :to="{ name: 'singleVideoPocket2', params: { id: video.data.id } }"
-                class="bg-white hover:bg-gray-300 text-oranges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
-              >
-                LECTURE
-              </RouterLink>
+            <!-- Vidéo YouTube -->
+            <iframe
+              v-if="video.type === 'youtube'"
+              :src="`https://www.youtube.com/embed/${video.data.id?.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${video.data.id?.videoId}`"
+              class="w-full h-full object-cover"
+              frameborder="0"
+              allow="autoplay; encrypted-media"
+            ></iframe>
 
-              <RouterLink
-                v-if="video.type === 'local'"
-                :to="{ name: 'singleVideoPocket', params: { id: video.data.id } }"
-                class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all ml-8"
-              >
-                PLUS D'INFO
-              </RouterLink>
+            <!-- Vidéo locale -->
+            <video
+              v-else-if="video.type === 'local'"
+              :src="`http://127.0.0.1:8090/api/files/videos/${video.data.id}/${video.data.VideoTele}`"
+              class="w-full h-full object-cover"
+              autoplay
+              muted
+              loop
+              playsinline
+            ></video>
+
+            <!-- Dégradés -->
+            <div class="absolute inset-x-0 bottom-0" style="background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); height: 50%;"></div>
+            <div class="hidden md:block absolute inset-y-0 left-0" style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%); width: 50%;"></div>
+
+            <!-- Contenu -->
+            <div class="absolute inset-0 flex flex-col justify-end items-center text-center md:text-start p-6 text-white md:justify-center md:items-start md:p-12">
+              <h1 class="text-sm font-[400] mb-[1rem] md:text-sm md:mb-12 tracking-[0.5em]">
+                {{ video.type === 'youtube' ? 'EN DIRECT' : 'ÉMISSION' }}
+              </h1>
+              <h1 class="text-5xl font-[800] mb-[3rem] md:text-5xl lg:text-7xl md:mb-8 max-w-2xl uppercase">
+                {{ video.type === 'youtube' ? video.data.snippet?.title : video.data.title }}
+              </h1>
+              <p class="text-lg mb-[3rem] md:text-2xl md:mb-8 max-w-lg uppercase">
+                {{ video.type === 'youtube' 
+                   ? (video.data.snippet?.description?.slice(0, 70) + '...') 
+                   : (video.data.description?.slice(0, 70) + '...') }}
+              </p>
+
+              <!-- Boutons d'action -->
+              <div v-if="index === currentVideoIndex" class="mb-10 flex gap-4">
+                <template v-if="video.type === 'youtube' && video.data.id?.videoId">
+                  <a
+                    :href="`https://www.youtube.com/watch?v=${video.data.id.videoId}`"
+                    target="_blank"
+                    class="bg-white hover:bg-gray-300 text-rouges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all"
+                  >
+                    VOIR LE DIRECT
+                  </a>
+                </template>
+
+                <template v-else-if="video.type === 'local' && video.data.id">
+                  <RouterLink
+                    :to="{ name: 'singleVideoPocket2', params: { id: video.data.id } }"
+                    class="bg-white hover:bg-gray-300 text-oranges font-semibold py-2 px-6 rounded-lg shadow-lg transition-all z-20"
+                  >
+                    LECTURE
+                  </RouterLink>
+
+                  <RouterLink
+                    :to="{ name: 'singleVideoPocket', params: { id: video.data.id } }"
+                    class="bg-gray-700 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition-all z-20"
+                  >
+                    PLUS D'INFO
+                  </RouterLink>
+                </template>
+              </div>
             </div>
           </div>
-        </div>
+        </transition-group>
       </div>
 
       <!-- Navigation Dots -->
-    <div class="absolute bottom-4 md:bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
+      <div class="absolute bottom-4 md:bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
         <div 
-            v-for="(video, index) in sliderVideos" 
-            :key="index" 
-            @click="goToSlide(index)"
-            class="w-5 h-5 relative cursor-pointer"
-            >
-            <!-- Cercle externe -->
-        <div 
-            class="absolute inset-0 rounded-full bg-white/30"
-        ></div>
-
-        <!-- Progression du cercle interne -->
-        <div 
+          v-for="(video, index) in sliderVideos" 
+          :key="index" 
+          @click="goToSlide(index)"
+          class="w-5 h-5 relative cursor-pointer"
+        >
+          <div class="absolute inset-0 rounded-full bg-white/30"></div>
+          <div 
             v-if="index === currentVideoIndex" 
             class="absolute inset-0 overflow-hidden rounded-full"
-        >
+          >
             <div 
-                class="absolute top-0 left-0 h-full bg-white transition-all ease-linear"
-                :style="{ width: `${progressPercentage}%` }"
+              class="absolute top-0 left-0 h-full bg-white transition-all ease-linear"
+              :style="{ width: `${progressPercentage}%` }"
             ></div>
+          </div>
         </div>
+      </div>
     </div>
-  </div>
-</div>
   </div>
 </template>
 
 <style scoped>
 video::-webkit-media-controls {
   display: none !important;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
 }
 </style>
