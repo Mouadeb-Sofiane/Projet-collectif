@@ -18,8 +18,8 @@
           <h2 class="text-2xl font-bold mb-4">Programmes</h2>
           <div class="h-0.5 bg-orange-500 w-full mb-10"></div>
           <ul class="grid grid-cols-2 gap-2 text-gray-300">
-            <li><RouterLink to="/rediffusion" class="hover:text-white">Rediffusion</RouterLink></li>
-            <li><RouterLink to="/reportage" class="hover:text-white">Reportage</RouterLink></li>
+            <li><RouterLink to="/rediffusions" class="hover:text-white">Rediffusions</RouterLink></li>
+            <li><RouterLink to="/reportages" class="hover:text-white">Reportages</RouterLink></li>
             <li><RouterLink to="/en-direct" class="hover:text-white">En direct</RouterLink></li>
             <li><RouterLink to="/documentaire" class="hover:text-white">Documentaire</RouterLink></li>
             <li><RouterLink to="/emission-21" class="hover:text-white">Émission 21</RouterLink></li>
@@ -42,7 +42,7 @@
                 Conditions générales d'utilisation
               </RouterLink>
             </li>
-            <li><RouterLink to="/newsroom" class="hover:text-white">Newsroom</RouterLink></li>
+       
           </ul>
         </div>
 

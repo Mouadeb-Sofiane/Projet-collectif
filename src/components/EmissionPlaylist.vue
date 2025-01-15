@@ -52,18 +52,15 @@ onMounted(async () => {
   }
 });
 </script>
-
 <template>
   <div class="w-full">
     <!-- Playlists Grid -->
     <div v-if="playlists.length && !isLoading" class="space-y-16">
-      <div v-for="playlist in playlists" :key="playlist.id">
+      <div v-for="playlist in playlists" :key="playlist.id" class="carousel-container relative bg-thirdColor text-white p-6 w-full px-12">
         <!-- Section titre avec surlignement -->
-        <div class="bg-thirdColor text-white p-6 w-full px-12">
-          <h2 class="text-2xl md:text-3xl font-bold my-6">{{ playlist.title }}</h2>
-          <div class="relative mb-8 mr-12">
-            <div class="h-1.5 w-[75%] md:w-[50%] lg:w-[25%] bg-primaryColor"></div>
-          </div>
+        <h2 class="text-2xl md:text-3xl font-bold my-6">{{ playlist.title }}</h2>
+        <div class="relative mb-8 mr-12">
+          <div class="h-1.5 w-[75%] md:w-[50%] lg:w-[25%] bg-primaryColor"></div>
         </div>
         
         <!-- Composant VideoPlaylist -->

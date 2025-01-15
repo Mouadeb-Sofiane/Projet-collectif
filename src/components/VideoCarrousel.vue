@@ -1,4 +1,4 @@
-
+<!-- VideoCarrousel.vue -->
 <script lang="ts">
 import { defineComponent, ref, onMounted, onBeforeUnmount, PropType } from 'vue';
 import { RouterLink } from 'vue-router';

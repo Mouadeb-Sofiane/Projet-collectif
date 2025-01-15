@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_KEY = 'AIzaSyDCwurTmP-By20Lfyt-0sqit9gCTiMfuYY'; // Remplace par ta clé API
+const API_KEY = 'AIzaSyDeiI-SizslP9iwTeECrgrOxTtiniepXRg'; // Remplace par ta clé API
 const CHANNEL_ID = 'UCPDz0ioYdfy3IhrY26DUPrQ'; // Remplace par l'ID de ta chaîne
 
 

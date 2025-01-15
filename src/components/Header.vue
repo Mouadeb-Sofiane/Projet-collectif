@@ -46,9 +46,7 @@ const closeMobileMenu = () => {
             <RouterLink to="/apropos" class="text-gray-300 hover:text-white text-xl">
               À propos
             </RouterLink>
-            <RouterLink to="/newsroom" class="text-gray-300 hover:text-white text-xl">
-              Newsroom
-            </RouterLink>
+
           </div>
 
           <!-- Bouton menu mobile -->
