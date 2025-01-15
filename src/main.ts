@@ -20,7 +20,7 @@ import ConditionUtilisation from './views/ConditionUtilisation.vue';
 import PolitiqueDeConfidentialiteVue from './views/PolitiqueDeConfidentialite.vue';
 import MentionsLegalesVue from './views/MentionsLegales.vue';
 import PolitiqueCookiesVue from './views/PolitiqueCookies.vue';
-
+import YouTubeLive from './views/YouTubeLive.vue';
 
 // Définir les routesdv
 const routes = [
@@ -41,7 +41,8 @@ const routes = [
   { path: '/conditionutilisation', component: ConditionUtilisation},
   { path: '/politiquedeconfidentialite', component: PolitiqueDeConfidentialiteVue},
   { path: '/mentionslegales', component: MentionsLegalesVue },
-  { path: '/politiquecookies' , component: PolitiqueCookiesVue}
+  { path: '/politiquecookies' , component: PolitiqueCookiesVue},
+  { path: '/youtubelive', component: YouTubeLive},
 ];
 
 const router = createRouter({
