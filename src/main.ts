@@ -20,7 +20,12 @@ import ConditionUtilisation from './views/ConditionUtilisation.vue';
 import PolitiqueDeConfidentialiteVue from './views/PolitiqueDeConfidentialite.vue';
 import MentionsLegalesVue from './views/MentionsLegales.vue';
 import PolitiqueCookiesVue from './views/PolitiqueCookies.vue';
+<<<<<<< HEAD
+import YoutubeLiveVue from './views/YoutubeLive.vue';
+
+=======
 import YouTubeLive from './views/YouTubeLive.vue';
+>>>>>>> a79a224ee946c7c8cbdb2ef9d5c7c98807cb2bfd
 
 // Définir les routesdv
 const routes = [
@@ -42,7 +47,14 @@ const routes = [
   { path: '/politiquedeconfidentialite', component: PolitiqueDeConfidentialiteVue},
   { path: '/mentionslegales', component: MentionsLegalesVue },
   { path: '/politiquecookies' , component: PolitiqueCookiesVue},
+<<<<<<< HEAD
+  { path: '/youtubelive' , component: YoutubeLiveVue},
+
+  
+  
+=======
   { path: '/youtubelive', component: YouTubeLive},
+>>>>>>> a79a224ee946c7c8cbdb2ef9d5c7c98807cb2bfd
 ];
 
 const router = createRouter({
