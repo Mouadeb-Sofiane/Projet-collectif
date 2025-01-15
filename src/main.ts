@@ -21,6 +21,9 @@ import PolitiqueDeConfidentialiteVue from './views/PolitiqueDeConfidentialite.vu
 import MentionsLegalesVue from './views/MentionsLegales.vue';
 import PolitiqueCookiesVue from './views/PolitiqueCookies.vue';
 import YouTubeLive from './views/YouTubeLive.vue';
+import SingleReportage from './components/SingleReportages.vue';    
+import SingleReportage2 from './components/SingleReportages2.vue';  
+
 
 // Définir les routesdv
 const routes = [
@@ -43,6 +46,17 @@ const routes = [
   { path: '/mentionslegales', component: MentionsLegalesVue },
   { path: '/politiquecookies' , component: PolitiqueCookiesVue},
   { path: '/youtubelive', component: YouTubeLive},
+  {
+    path: '/reportage/:id',  
+    name: 'singleReportagePocket',  
+    component: SingleReportage,
+  },
+  {
+    path: '/reportage2/:id',  
+    name: 'singleReportagePocket2',  
+    component: SingleReportage2,
+  },
+  
 ];
 
 const router = createRouter({
