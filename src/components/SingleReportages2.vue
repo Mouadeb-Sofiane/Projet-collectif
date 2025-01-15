@@ -23,13 +23,15 @@ const errorMessage = ref<string>('');
 const isExpanded = ref<boolean>(false);
 const isCopied = ref<boolean>(false);
 
+// Toggle la description
 const toggleDescription = (): void => {
   isExpanded.value = !isExpanded.value;
 };
 
+// Copie du lien de la page
 const copyLink = async (): Promise<void> => {
   try {
-    const link = window.location.href; // Récupère le lien actuel
+    const link = window.location.href; // Récupère l'URL actuelle
     await navigator.clipboard.writeText(link);
     isCopied.value = true;
     setTimeout(() => {
@@ -40,6 +42,7 @@ const copyLink = async (): Promise<void> => {
   }
 };
 
+// Récupère les données du reportage au montage du composant
 onMounted(async () => {
   isLoading.value = true;
   try {
@@ -62,10 +65,10 @@ onMounted(async () => {
 
 <template>
   <div class="p-6 pt-24 bg-black text-white">
-    <div v-if="isLoading" class="flex justify-center items-center h-screen">
-      <p class="text-lg">Chargement du reportage...</p>
+    <div v-if="isLoading" class="fflex justify-center items-center h-screen">
+      <p class="text-lg">Chargement de la vidéo...</p>
     </div>
-
+    
     <div v-if="errorMessage" class="text-center text-red-500 py-6">
       <p>{{ errorMessage }}</p>
     </div>
@@ -73,9 +76,10 @@ onMounted(async () => {
     <template v-if="reportage && !isLoading">
       <div class="max-w-[100rem] lg:flex lg:items-start lg:space-x-8 mx-12">
         <div class="relative flex justify-center mb-8 lg:w-5/10">
+          <!-- Composant pour afficher la vidéo -->
           <CustomVideoPlayer
             v-if="reportage.VideoTele"
-            :video-url="`http://127.0.0.1:8090/api/files/videos/${reportage.id}/${reportage.VideoTele}`"
+            :video-url="`http://127.0.0.1:8090/api/files/reportages/${reportage.id}/${reportage.VideoTele}`"
             class="w-full rounded-md shadow-lg"
           />
         </div>
@@ -125,7 +129,11 @@ onMounted(async () => {
 
           <div>
             <h3 class="text-xl font-semibold">Auteur</h3>
-            <p class="text-gray-300">{{ reportage.author || 'Non spécifié' }}</p>
+            <p class="text-gray-300">{{ reportage.casting || 'Non spécifié' }}</p>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold">Réalisé par</h3>
+            <p class="text-gray-300">{{ reportage.realisation || 'Non spécifié' }}</p>
           </div>
 
           <div class="flex justify-between text-sm text-gray-400">
@@ -136,6 +144,7 @@ onMounted(async () => {
             <p>Durée : {{ reportage.duree || 'Non disponible' }}</p>
           </div>
 
+          <!-- Bouton de partage -->
           <div class="flex justify-start mt-8 relative">
             <img
               :src="Share"

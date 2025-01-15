@@ -3,7 +3,6 @@
 import { defineComponent, ref, onMounted, onBeforeUnmount, PropType } from 'vue';
 import { RouterLink } from 'vue-router';
 
-
 export interface Video {
   id: string;
   title: string;
@@ -14,7 +13,6 @@ export interface Video {
   defaultThumbnail?: string;
   customThumbnail?: string | null;
 }
-
 
 export default defineComponent({
   name: 'VideoCarousel',
@@ -103,32 +101,36 @@ export default defineComponent({
         :style="{ width: `${itemWidth}px` }"
       >
         <div class="rounded-lg shadow-md">
-          <div class="relative w-full aspect-video flex-shrink-0">
-            <RouterLink :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
-              <img
-                :src="`https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`"
-                :alt="`Vignette de ${video.title}`"
-                class="w-full h-full object-cover"
-              />
-            </RouterLink>
-            <div>
-              <span
-                v-if="video.duration"
-                class="bg-primaryColor absolute bottom-2 right-2 bg-black bg-opacity-75 text-black text-xs px-2 py-1 rounded"
-              >
-                {{ formatDuration(video.duration) }}
-              </span>
-              <span
-                v-else
-                class="bg-primaryColor absolute bottom-2 right-2 bg-black bg-opacity-75 text-black font-semibold text-xs px-2 py-1 rounded"
-              >
-                {{ video.duree }}
-              </span>
+          <!-- Wrapper pour la carte entière -->
+          <div class="relative">
+            <!-- Contenu de la carte -->
+            <div class="relative w-full aspect-video flex-shrink-0">
+              <RouterLink :to="{ name: 'singleVideoPocket', params: { id: video.id } }">
+                <img
+                  :src="`https://img.youtube.com/vi/${video.videoId}/sddefault.jpg`"
+                  :alt="`Vignette de ${video.title}`"
+                  class="w-full h-full object-cover"
+                />
+              </RouterLink>
+              <div>
+                <span
+                  v-if="video.duration"
+                  class="bg-primaryColor absolute bottom-2 right-2 bg-black bg-opacity-75 text-black text-xs px-2 py-1 rounded"
+                >
+                  {{ formatDuration(video.duration) }}
+                </span>
+                <span
+                  v-else
+                  class="bg-primaryColor absolute bottom-2 right-2 bg-black bg-opacity-75 text-black font-semibold text-xs px-2 py-1 rounded"
+                >
+                  {{ video.duree }}
+                </span>
+              </div>
             </div>
-          </div>
-          <div class="p-4">
-            <h3 class="md:text-xl font-bold truncate">{{ video.title }}</h3>
-            <h3 class="mt-1 font-light text-sm truncate line-clamp-2">{{ video.description }}</h3>
+            <div class="p-4">
+              <h3 class="md:text-xl font-bold truncate">{{ video.title }}</h3>
+              <h3 class="mt-1 font-light text-sm truncate line-clamp-2">{{ video.description }}</h3>
+            </div>
           </div>
         </div>
       </div>
@@ -138,7 +140,7 @@ export default defineComponent({
     <button
       v-if="currentIndex > 0"
       @click="scrollPrev"
-      class="absolute top-1/2 left-[-0.3rem] transform -translate-y-1/2 w-12 h-[18rem] flex items-center justify-center text-white hover:bg-opacity-80"
+      class="absolute left-[-0.3rem] top-0 bottom-0 w-12 flex items-center justify-center text-white hover:bg-opacity-80"
       style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);"
     >
       <svg width="16" height="28" viewBox="0 0 16 28" fill="none" class="transform rotate-180" xmlns="http://www.w3.org/2000/svg">
@@ -154,7 +156,7 @@ export default defineComponent({
     <button
       v-if="currentIndex + visibleItems < videos.length"
       @click="scrollNext"
-      class="absolute top-1/2 right-[-0.3rem] transform -translate-y-1/2 w-12 h-[18rem] flex items-center justify-center text-white hover:bg-opacity-80"
+      class="absolute right-[-0.3rem] top-0 bottom-0 w-12 flex items-center justify-center text-white hover:bg-opacity-80"
       style="background: linear-gradient(to left, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);"
     >
       <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -178,4 +180,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-
