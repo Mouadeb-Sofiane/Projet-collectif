@@ -46,9 +46,7 @@ const closeMobileMenu = () => {
             <RouterLink to="/apropos" class="text-gray-300 hover:text-white text-xl">
               À propos
             </RouterLink>
-            <RouterLink to="/newsroom" class="text-gray-300 hover:text-white text-xl">
-              Newsroom
-            </RouterLink>
+
           </div>
 
           <!-- Bouton menu mobile -->
@@ -84,7 +82,7 @@ const closeMobileMenu = () => {
           <div class="flex justify-between items-center mb-8">
             <!-- Logo -->
             <RouterLink to="/" class="flex-shrink-0">
-              <img src="../img/WEBTV.png" class="h-12" alt="logo du site" />
+              <img src="../img/WEBTV.png" class="h-8" alt="logo du site" />
             </RouterLink>
             <!-- Bouton fermeture -->
             <button @click="closeMobileMenu" class="text-white bg-inherit">

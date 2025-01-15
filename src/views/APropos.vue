@@ -3,7 +3,7 @@
 
 <template>
   <div>
-    <div class="relative w-full h-screen overflow-hidden">
+    <div class="relative w-max-full h-[50vh] overflow-hidden">
     <img
       src="../img/APropos/img0.png"
       class="w-full h-full object-cover"

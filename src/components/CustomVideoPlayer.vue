@@ -21,9 +21,9 @@ const isFullscreen = ref(false);
 const showControls = ref(true);
 const isMouseOverControls = ref(false);
 const hideTimeout = ref<number | null>(null);
+const lastMouseMove = ref<number>(Date.now());
 const availableSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-// Gestion du temps
 const formatTime = (time: number): string => {
   const hours = Math.floor(time / 3600);
   const minutes = Math.floor((time % 3600) / 60);
@@ -31,46 +31,54 @@ const formatTime = (time: number): string => {
   return `${hours > 0 ? hours.toString().padStart(2, '0') + ':' : ''}${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 };
 
-// Gestion des contrôles
-const hideControls = () => {
+const startHideTimer = () => {
   if (hideTimeout.value) {
-    window.clearTimeout(hideTimeout.value);
+    clearTimeout(hideTimeout.value);
+    hideTimeout.value = null;
   }
+
   hideTimeout.value = window.setTimeout(() => {
-    if (!isMouseOverControls.value && isPlaying.value) {
+    const currentTime = Date.now();
+    if (currentTime - lastMouseMove.value >= 3000 && isPlaying.value && !isMouseOverControls.value) {
       showControls.value = false;
     }
   }, 3000);
 };
 
-const showControlsHandler = () => {
+const handleMouseMove = () => {
+  lastMouseMove.value = Date.now();
   showControls.value = true;
-  hideControls();
+  startHideTimer();
 };
 
 const handleMouseEnter = () => {
   isMouseOverControls.value = true;
   showControls.value = true;
   if (hideTimeout.value) {
-    window.clearTimeout(hideTimeout.value);
+    clearTimeout(hideTimeout.value);
   }
 };
 
 const handleMouseLeave = () => {
   isMouseOverControls.value = false;
-  hideControls();
+  if (isPlaying.value) {
+    startHideTimer();
+  }
 };
 
-// Contrôles de lecture
 const handlePlayPause = () => {
   if (!videoRef.value) return;
   if (isPlaying.value) {
     videoRef.value.pause();
+    showControls.value = true;
+    if (hideTimeout.value) {
+      clearTimeout(hideTimeout.value);
+    }
   } else {
     videoRef.value.play();
+    startHideTimer();
   }
   isPlaying.value = !isPlaying.value;
-  hideControls();
 };
 
 const handleTimeUpdate = () => {
@@ -90,31 +98,27 @@ const handleSkip = (seconds: number) => {
   videoRef.value.currentTime = videoRef.value.currentTime + seconds;
 };
 
-// Contrôles audio
 const toggleMute = () => {
   if (!videoRef.value) return;
   videoRef.value.muted = !videoRef.value.muted;
   isMuted.value = !isMuted.value;
 };
 
-// Contrôles de vitesse
 const setPlaybackSpeed = (speed: number) => {
   if (!videoRef.value) return;
   videoRef.value.playbackRate = speed;
   playbackSpeed.value = speed;
   showSpeedOptions.value = false;
-  hideControls();
 };
 
-// Gestion du plein écran
 const toggleFullscreen = async () => {
   if (!containerRef.value) return;
-  
+
   if (!document.fullscreenElement) {
     try {
       await containerRef.value.requestFullscreen();
       isFullscreen.value = true;
-      hideControls();
+      startHideTimer();
     } catch (err) {
       console.error('Error attempting to enable fullscreen:', err);
     }
@@ -124,7 +128,7 @@ const toggleFullscreen = async () => {
       isFullscreen.value = false;
       showControls.value = true;
       if (hideTimeout.value) {
-        window.clearTimeout(hideTimeout.value);
+        clearTimeout(hideTimeout.value);
       }
     } catch (err) {
       console.error('Error attempting to exit fullscreen:', err);
@@ -132,7 +136,6 @@ const toggleFullscreen = async () => {
   }
 };
 
-// Cycle de vie du composant
 onMounted(() => {
   if (videoRef.value) {
     duration.value = videoRef.value.duration;
@@ -144,24 +147,25 @@ onMounted(() => {
   document.addEventListener('fullscreenchange', () => {
     isFullscreen.value = !!document.fullscreenElement;
   });
+
+  startHideTimer();
 });
 
 onBeforeUnmount(() => {
   if (hideTimeout.value) {
-    window.clearTimeout(hideTimeout.value);
+    clearTimeout(hideTimeout.value);
   }
 });
 </script>
 
 <template>
-  <div 
+  <div
     ref="containerRef"
-    class="relative bg-black w-full h-full group"
+    class="relative bg-black w-full h-full overflow-hidden cursor-auto"
     :class="{ 'fixed inset-0 z-50': isFullscreen }"
-    @mousemove="showControlsHandler"
+    @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave"
   >
-    <!-- Vidéo -->
     <video
       ref="videoRef"
       :src="videoUrl"
@@ -170,48 +174,38 @@ onBeforeUnmount(() => {
       @click="handlePlayPause"
     />
 
-    <!-- Overlay des contrôles -->
-    <div 
-      class="absolute bottom-0 left-0 right-0 w-full h-full bg-gradient-to-t from-orange-500/30 to-transparent transition-opacity duration-300"
+    <div
+      class="absolute bottom-0 left-0 right-0 w-full h-full bg-gradient-to-t from-black/50 to-transparent transition-opacity"
       :class="{
-        'opacity-0': !showControls,
-        'opacity-100': showControls,
-        'pointer-events-none': !showControls
+        'opacity-0 pointer-events-none': !showControls,
+        'opacity-100 pointer-events-auto': showControls,
       }"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
     >
-      <!-- Container des contrôles -->
       <div class="absolute bottom-0 left-0 right-0 px-4 py-3">
-        <!-- Affichage du temps -->
         <div class="text-white text-sm mb-2">
           {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
         </div>
-
-        <!-- Barre de progression -->
-        <div 
+        <div
           ref="progressBarRef"
           class="w-full h-1 bg-white/30 cursor-pointer mb-4 relative"
           @click="handleProgressBarClick"
         >
-          <div 
-            class="absolute top-0 left-0 h-full bg-[#FFA559]"
+          <div
+            class="absolute top-0 left-0 h-full bg-orange-500"
             :style="{ width: `${(currentTime / duration) * 100}%` }"
           >
-            <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-[#FFA559] rounded-full"></div>
+            <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-orange-500 rounded-full"></div>
           </div>
         </div>
 
-        <!-- Contrôles -->
         <div class="flex items-center justify-between text-white">
-          <!-- Contrôles de gauche -->
           <div class="flex items-center space-x-2">
-            <!-- Retour rapide -->
             <button @click="() => handleSkip(-10)" class="hover:text-[#FFA559] p-2">
               <img :src="BackIcon" class="w-8 h-8" alt="Retour rapide" />
             </button>
 
-            <!-- Lecture/Pause -->
             <button @click="handlePlayPause" class="hover:text-[#FFA559] p-2">
               <div class="w-10 h-10 flex items-center justify-center">
                 <svg v-if="!isPlaying" class="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
@@ -223,15 +217,12 @@ onBeforeUnmount(() => {
               </div>
             </button>
 
-            <!-- Avance rapide -->
             <button @click="() => handleSkip(10)" class="hover:text-[#FFA559] p-2">
               <img :src="ForwardIcon" class="w-8 h-8" alt="Avance rapide" />
             </button>
           </div>
 
-          <!-- Contrôles de droite -->
           <div class="flex items-center space-x-4">
-            <!-- Vitesse de lecture -->
             <div class="relative">
               <button 
                 @click="showSpeedOptions = !showSpeedOptions" 
@@ -240,7 +231,6 @@ onBeforeUnmount(() => {
                 <span class="text-sm">{{ playbackSpeed }}x</span>
               </button>
               
-              <!-- Options de vitesse -->
               <div 
                 v-if="showSpeedOptions"
                 class="absolute bottom-full mb-2 bg-black/90 rounded-lg py-2"
@@ -257,7 +247,6 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <!-- Volume -->
             <button @click="toggleMute" class="hover:text-[#FFA559] p-1">
               <svg v-if="!isMuted" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
@@ -267,7 +256,6 @@ onBeforeUnmount(() => {
               </svg>
             </button>
 
-            <!-- Plein écran -->
             <button @click="toggleFullscreen" class="hover:text-[#FFA559] p-1">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
@@ -287,5 +275,9 @@ video::-webkit-media-controls {
 
 video::-webkit-media-controls-enclosure {
   display: none !important;
+}
+
+.transition-opacity {
+  transition: opacity 0.3s ease-in-out;
 }
 </style>
