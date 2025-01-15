@@ -107,6 +107,7 @@ onMounted(async () => {
     <!-- Playlists Grid -->
     <div v-if="playlists.length && !isLoading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 mx-auto max-w-[2000px]">
       <div v-for="playlist in playlists" :key="playlist.id" class="relative aspect-[4/3] cursor-pointer group" @click="selectPlaylist(playlist)">
+        
         <img v-if="playlist.thumbnailurl" :src="playlist.thumbnailurl" :alt="playlist.title" class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105" />
       </div>
     </div>

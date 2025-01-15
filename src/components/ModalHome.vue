@@ -168,30 +168,50 @@ onUnmounted(() => {
         :alt="selectedPlaylist.title"
         class="w-full h-full object-cover"
       />
+      <div
+          class="absolute inset-0"
+          style="background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 50%);"
+        ></div>
       <div class="absolute bottom-0 flex w-full flex-col px-4 pb-4 sm:bottom-auto sm:left-8 sm:top-1/2 sm:max-w-[320px] sm:-translate-y-1/2 sm:px-0 sm:pb-0 lg:left-10 lg:max-w-[400px] gap-y-3 lg:gap-y-4">
         <!-- Logo SVG -->
         <div class="relative">
           <svg
-      id="Calque_1"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 500 253.04"
-      class="h-[4.5rem] sm:h-[4rem] md:h-[5rem] lg:h-[7.5rem]"
-    >
-      <g>
-        <path fill="#1d1d1b" d="M54.33,62.92v190.14H0V62.92h54.33Z" />
-        <path
-          fill="#1d1d1b"
-          d="M118.83,62.9v95.07c0,27.16,9.05,40.74,27.16,40.74s27.16-13.58,27.16-40.74V62.9h54.33v95.07c0,63.38-27.16,95.07-81.49,95.07s-81.49-31.69-81.49-95.07V62.9h54.33Z"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 500 253.04"
+        class="h-[4.5rem] sm:h-[4rem] md:h-[5rem] lg:h-[7.5rem]"
+      >
+        <g>
+          <path
+            style="fill: #e2e2e2"
+            d="M54.33,62.92v190.14H0V62.92h54.33Z"
+          />
+          <path
+            style="fill: #e2e2e2"
+            d="M118.83,62.9v95.07c0,27.16,9.05,40.74,27.16,40.74s27.16-13.58,27.16-40.74V62.9h54.33v95.07c0,63.38-27.16,95.07-81.49,95.07s-81.49-31.69-81.49-95.07V62.9h54.33Z"
+          />
+        </g>
+        <rect
+          style="fill: #e2e2e2"
+          x="0"
+          y="0"
+          width="54.33"
+          height="54.33"
+          rx="27.16"
+          ry="27.16"
         />
-      </g>
-      <rect fill="#1d1d1b" x="0" y="0" width="54.33" height="54.33" rx="27.16" />
-      <path
-        fill="#1d1d1b"
-        d="M500,62.9l-61.71,190.14h-74.42l-61.71-190.14h61.19l37.86,130.79,37.6-130.79h61.19Z"
-      />
-      <path fill="#f6a35d" d="M291.98,17.49v235.55h-54.33V17.49h54.33Z" />
-      <path fill="#f6a35d" d="M64.5-.02h435.5v54.33H64.5V-.02Z" />
-    </svg>
+        <path
+          style="fill: #e2e2e2"
+          d="M500,62.9l-61.71,190.14h-74.42l-61.71-190.14h61.19l37.86,130.79,37.6-130.79h61.19Z"
+        />
+        <path
+          style="fill: #f6a35d"
+          d="M291.98,17.49v235.55h-54.33V17.49h54.33Z"
+        />
+        <path
+          style="fill: #f6a35d"
+          d="M64.5-.02h435.5v54.33H64.5V-.02Z"
+        />
+      </svg>
         </div>
         
         <h2 class="font-sans font-semibold tracking-[0.02em] text-[0.875rem] leading-[1.125rem] sm:text-[1rem] sm:leading-[1.375rem] lg:text-[1.4375rem] lg:leading-[1.75rem]">
