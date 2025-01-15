@@ -29,7 +29,7 @@ import WEBTVLogo from "./icons/WEBTV-Logo.vue";
               >
             </li>
             <li>
-              <RouterLink to="/endirect" class="hover:text-white"
+              <RouterLink to="/youtubelive" class="hover:text-white"
                 >En direct</RouterLink
               >
             </li>
@@ -87,32 +87,18 @@ import WEBTVLogo from "./icons/WEBTV-Logo.vue";
         <div class="flex flex-col items-start">
           <!-- Icônes réseaux sociaux -->
           <div class="flex space-x-4 text-gray-300">
+            
             <a
-              href="https://www.facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-gray-400 hover:text-white transition-colors"
-            >
-              <FacebookIcon class="h-20" />
-            </a>
-            <a
-              href="https://www.instagram.com"
+              href="https://www.instagram.com/webtv_iutnfc/"
               target="_blank"
               rel="noopener noreferrer"
               class="text-gray-400 hover:text-white transition-colors"
             >
               <InstagramIcon class="h-20" />
             </a>
+            
             <a
-              href="https://www.linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-gray-400 hover:text-white transition-colors"
-            >
-              <LinkedinIcon class="h-20" />
-            </a>
-            <a
-              href="https://www.youtube.com"
+              href="https://www.youtube.com/@IUTV-ytb/playlists"
               target="_blank"
               rel="noopener noreferrer"
               class="text-gray-400 hover:text-white transition-colors"

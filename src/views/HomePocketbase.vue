@@ -2,8 +2,6 @@
 import HomePlaylist from '@/components/HomePlaylist.vue';
 import HomeSlider from '@/components/HomeSlider.vue';
 import ModalHome from '@/components/ModalHome.vue';
-
-
 </script>
 
 <template>
