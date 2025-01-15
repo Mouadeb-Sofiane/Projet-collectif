@@ -16,6 +16,10 @@ import Reportages from './views/Reportages.vue';
 import Emissions from './views/Emissions.vue';
 import APropos from './views/APropos.vue';
 import SingleLive from './views/SingleLive.vue';
+import ConditionUtilisation from './views/ConditionUtilisation.vue';
+import PolitiqueDeConfidentialiteVue from './views/PolitiqueDeConfidentialite.vue';
+import MentionsLegalesVue from './views/MentionsLegales.vue';
+import PolitiqueCookiesVue from './views/PolitiqueCookies.vue';
 
 
 // Définir les routesdv
@@ -34,6 +38,10 @@ const routes = [
   { path: '/emissions', component: Emissions },
   { path: '/apropos', component: APropos },
   { path: '/singlelive', component: SingleLive, name: 'singleLive'},
+  { path: '/conditionutilisation', component: ConditionUtilisation},
+  { path: '/politiquedeconfidentialite', component: PolitiqueDeConfidentialiteVue},
+  { path: '/mentionslegales', component: MentionsLegalesVue },
+  { path: '/politiquecookies' , component: PolitiqueCookiesVue}
 ];
 
 const router = createRouter({
