@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch, onUnmounted } from 'vue';
 import PocketBase from 'pocketbase';
-import PlaylistModal from './PlaylistModal.vue'; // Import du composant modal
+import PlaylistModal from './PlaylistModal.vue';
 
 // Types
 type Playlist = {
@@ -45,6 +45,40 @@ const fetchWithRetry = async (fn: Function, retries = 3, delay = 1000): Promise<
   }
 };
 
+// Fonction pour calculer la largeur de la scrollbar
+const getScrollbarWidth = (): number => {
+  const outer = document.createElement('div');
+  outer.style.visibility = 'hidden';
+  outer.style.overflow = 'scroll';
+  document.body.appendChild(outer);
+
+  const inner = document.createElement('div');
+  outer.appendChild(inner);
+
+  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+  outer.parentNode?.removeChild(outer);
+
+  return scrollbarWidth;
+};
+
+// Watch pour la gestion du scroll
+watch(isModalOpen, (newValue) => {
+  if (newValue) {
+    const scrollbarWidth = getScrollbarWidth();
+    document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+    document.body.classList.add('modal-open', 'modal-open-overflow');
+  } else {
+    document.body.classList.remove('modal-open', 'modal-open-overflow');
+  }
+});
+
+// Gestionnaire de touche Escape
+const handleKeyDown = (event: KeyboardEvent): void => {
+  if (event.key === 'Escape') {
+    closeModal();
+  }
+};
+
 // Sélectionner une playlist
 const selectPlaylist = async (playlist: Playlist) => {
   selectedPlaylist.value = playlist;
@@ -75,6 +109,8 @@ const closeModal = () => {
 
 // Charger les playlists lors du montage du composant
 onMounted(async () => {
+  document.addEventListener('keydown', handleKeyDown);
+  
   isLoading.value = true;
   try {
     const pb = new PocketBase('http://127.0.0.1:8090');
@@ -114,10 +150,16 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown);
+  document.body.classList.remove('modal-open', 'modal-open-overflow');
+  document.body.style.removeProperty('--scrollbar-width');
+});
 </script>
 
 <template>
-  <div class="bg-black ">
+  <div class="bg-black">
     <!-- Playlists Grid -->
     <div 
       v-if="playlists.length && !isLoading" 
@@ -138,7 +180,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- PlaylistModal component remains the same -->
+    <!-- PlaylistModal component -->
     <PlaylistModal
       :is-open="isModalOpen"
       :playlist="selectedPlaylist"
@@ -146,14 +188,23 @@ onMounted(async () => {
       :on-close="closeModal"
     />
 
-    <!-- Error message remains the same -->
+    <!-- Error message -->
     <div v-if="errorMessage" class="text-red-500 text-center mt-4">
       {{ errorMessage }}
     </div>
   </div>
 </template>
 
-<style scoped>
+<style>
+.modal-open {
+  overflow: hidden;
+  padding-right: var(--scrollbar-width);
+}
+
+.modal-open-overflow {
+  overflow-y: hidden;
+}
+
 .grid {
   padding-top: 1rem;
   padding-bottom: 1rem;
