@@ -9,7 +9,7 @@ import {
 import { RouterLink } from "vue-router";
 
 export interface Reportages {
-  id_reportages: string; // Use 'id_reportages' properly
+  id: string; // Use 'id_reportages' properly
   title: string;
   videoId: string;
   duree?: string;
@@ -104,7 +104,7 @@ export default defineComponent({
     >
       <div
         v-for="reportage in reportages"
-        :key="reportage.id_reportages"
+        :key="reportage.id"
         class="carousel-item flex-shrink-0 w-full px-2"
         :style="{ width: `${itemWidth}px` }"
       >
@@ -113,7 +113,7 @@ export default defineComponent({
             <RouterLink
               :to="{
                 name: 'singleReportagePocket',
-                params: { id: reportage.id_reportages },
+                params: { id: reportage.id },
               }"
             >
               <img
