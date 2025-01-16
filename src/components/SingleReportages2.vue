@@ -65,7 +65,7 @@ onMounted(async () => {
 
 <template>
   <div class="p-6 pt-24 bg-black text-white">
-    <div v-if="isLoading" class="fflex justify-center items-center h-screen">
+    <div v-if="isLoading" class="flex justify-center items-center h-screen">
       <p class="text-lg">Chargement de la vidéo...</p>
     </div>
     
