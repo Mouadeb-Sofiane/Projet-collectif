@@ -43,6 +43,9 @@ const closeMobileMenu = () => {
             <RouterLink to="/rediffusions" class="text-gray-300 hover:text-white text-xl">
               Rediffusions
             </RouterLink>
+            <RouterLink to="/youtubelive" class="text-gray-300 hover:text-white text-xl">
+              Live
+            </RouterLink>
             <RouterLink to="/apropos" class="text-gray-300 hover:text-white text-xl">
               À propos
             </RouterLink>
@@ -128,19 +131,19 @@ const closeMobileMenu = () => {
             <li>
               <RouterLink
                 @click="closeMobileMenu"
-                to="/apropos"
+                to="/youtubelive"
                 class="block py-3 text-gray-200 bg-primary-700 rounded"
               >
-                À propos
+                Live
               </RouterLink>
             </li>
             <li>
               <RouterLink
                 @click="closeMobileMenu"
-                to="/newsroom"
+                to="/apropos"
                 class="block py-3 text-gray-200 bg-primary-700 rounded"
               >
-                Newsroom
+                À propos
               </RouterLink>
             </li>
           </ul>
