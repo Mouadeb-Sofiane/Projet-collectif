@@ -61,7 +61,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="p-6 pt-24 bg-black text-white">
+  <div class="bg-black text-white pt-24">
     <div v-if="isLoading" class="flex justify-center items-center h-screen">
       <p class="text-lg">Chargement de la vidéo...</p>
     </div>
@@ -71,18 +71,20 @@ onMounted(async () => {
     </div>
 
     <template v-if="video && !isLoading">
-      <div class="max-w-[100rem] lg:flex lg:items-start lg:space-x-8 mx-12">
-        <div class="relative flex justify-center mb-8 lg:w-5/10">
+      <div class="max-w-[100rem] flex flex-col lg:flex-row lg:items-start lg:space-x-8 lg:mx-12">
+        <!-- Container vidéo sans aucun padding sur mobile -->
+        <div class="relative w-full lg:w-5/10 mb-8">
           <CustomVideoPlayer
             v-if="video.VideoTele"
             :video-url="`http://127.0.0.1:8090/api/files/videos/${video.id}/${video.VideoTele}`"
-            class="w-full rounded-md shadow-lg"
+            class="w-full shadow-lg"
           />
         </div>
 
-        <div class="md:w-2/3 space-y-8">
+        <!-- Container des informations avec padding uniquement sur mobile -->
+        <div class="w-full lg:w-2/3 space-y-8 px-6 lg:px-0">
           <div class="space-y-4">
-            <h1 class="pb-6 mx-auto uppercase text-xl md:text-2xl font-bold mb-4">
+            <h1 class="pb-6 uppercase text-xl md:text-2xl font-bold mb-4">
               {{ video.title }}
             </h1>
 
@@ -121,7 +123,6 @@ onMounted(async () => {
                 {{ video.description }}
               </p>
             </div>
-
 
             <div>
               <h3 class="text-xl font-semibold">Casting</h3>
