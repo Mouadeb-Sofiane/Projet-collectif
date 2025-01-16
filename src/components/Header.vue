@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
+import WEBTVLogo from "./icons/WEBTV-Logo.vue";
 
 // État d'ouverture du menu mobile
 const isOpen = ref(false);
