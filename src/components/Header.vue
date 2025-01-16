@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
-import WEBTVLogo from "./icons/WEBTV-Logo.vue";
 
 // État d'ouverture du menu mobile
 const isOpen = ref(false);
@@ -85,7 +84,7 @@ const closeMobileMenu = () => {
           <div class="flex justify-between items-center mb-8">
             <!-- Logo -->
             <RouterLink to="/" class="flex-shrink-0">
-              <img src="../img/WEBTV.png" class="h-8" alt="logo du site" />
+              <WEBTVLogo class="h-12" alt="logo du site" />
             </RouterLink>
             <!-- Bouton fermeture -->
             <button @click="closeMobileMenu" class="text-white bg-inherit">
